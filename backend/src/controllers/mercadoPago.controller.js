@@ -82,7 +82,7 @@ async function onBoarding(req, res) {
         if (error) {
             return respondError(res, 400, error);
         }
-        console.log("MP: Controller OnBoarding", response);
+       // console.log("MP: Controller OnBoarding", response);
         return respondSuccess(res, 200, response);
     } catch (error) {
         handleError(error, "mercadoPago.controller -> onBoarding");
@@ -97,7 +97,7 @@ async function generarUrlOnBoarding(req, res) {
         if (error) {
             return respondError(res, 400, error);
         }
-        console.log("MP: Controller GenerarUrl", url);
+        //console.log("MP: Controller GenerarUrl", url);
         return respondSuccess(res, 200, url);
     } catch (error) {
         handleError(error, "mercadoPago.controller -> generarUrlOnBoarding");

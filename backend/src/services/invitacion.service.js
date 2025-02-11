@@ -36,7 +36,7 @@ export async function crearInvitacion({ idMicroempresa, email }) {
 
         // Crear el token único para la invitación
         const token = generateToken();
-        console.log("🔑 Token generado en backend:", token);
+       // console.log("🔑 Token generado en backend:", token);
 
         // Crear la invitación con estado "pendiente"
         const nuevaInvitacion = await Invitacion.create({
@@ -72,7 +72,7 @@ export async function crearInvitacion({ idMicroempresa, email }) {
             `,
         });
 
-        console.log("📩 Invitación enviada a:", email, "🔗 Deep Link:", deepLink);
+      //  console.log("📩 Invitación enviada a:", email, "🔗 Deep Link:", deepLink);
 
         return { message: "Invitación enviada con éxito", data: nuevaInvitacion };
     } catch (error) {

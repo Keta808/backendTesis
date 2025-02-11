@@ -101,7 +101,7 @@ async function crearPlanGratuito(req, res) {
 async function buscarPlanDeSuscripcion(req, res) {
     try {
         const params = req.query;
-        console.log("CONTROLLER BUSCAR PLAN: Datos recibidos en el controller:", params);
+       // console.log("CONTROLLER BUSCAR PLAN: Datos recibidos en el controller:", params);
         // Llamada al servicio para buscar plan de suscripción
         const plan = await suscripcionService.buscarPlanDeSuscripcion(params);
         return respondSuccess(res, plan, 200);
@@ -113,7 +113,7 @@ async function buscarPlanDeSuscripcion(req, res) {
 async function obtenerPlanDeSuscripcion(req, res) {
     try {
         const planId = req.params.id;
-        console.log("CONTROLLER OBTENER PLAN: Datos recibidos en el controller:", planId);
+        //console.log("CONTROLLER OBTENER PLAN: Datos recibidos en el controller:", planId);
         // Llamada al servicio para obtener plan de suscripción
         const plan = await suscripcionService.obtenerPlanDeSuscripcion(planId);
         return respondSuccess(res, plan, 200);
@@ -126,7 +126,7 @@ async function actualizarPlanDeSuscripcion(req, res) {
     try {
         const planId = req.params.id;
         const plan = req.body;
-        console.log("CONTROLLER ACTUALIZAR PLAN: Datos recibidos en el controller:", planId, plan);
+        //console.log("CONTROLLER ACTUALIZAR PLAN: Datos recibidos en el controller:", planId, plan);
         // Llamada al servicio para actualizar plan de suscripción
         const updatedPlan = await suscripcionService.actualizarPlanDeSuscripcion(planId, plan);
         return respondSuccess(res, updatedPlan, 200);

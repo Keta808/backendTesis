@@ -14,7 +14,7 @@ export function startActualizarReservasJob() {
         },
         { $set: { estado: 'finalizado' } }
       );
-      console.log(`Reservas actualizadas: ${resultado.modifiedCount}`);
+      //console.log(`Reservas actualizadas: ${resultado.modifiedCount}`);
     } catch (error) {
       console.error('Error al actualizar reservas:', error);
     }

@@ -103,7 +103,7 @@ async function getTrabajadorById(req, res) {
 
     const [trabajador, errorTrabajador] = await UserService.getTrabajadorById(req.params.id);
     if (errorTrabajador) return respondError(req, res, 404, errorTrabajador);
-    console.log("CONTROLLER TRAB: ", trabajador);
+    //console.log("CONTROLLER TRAB: ", trabajador);
     respondSuccess(req, res, 200, trabajador);
   } catch (error) {
     handleError(error, "user.controller -> getTrabajadorById");

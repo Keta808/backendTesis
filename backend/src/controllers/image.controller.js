@@ -15,7 +15,7 @@ async function uploadFotoPerfil(req, res) {
         }
 
         const { microempresaId } = req.body;
-        console.log("🖼️ Recibido microempresaId:", microempresaId);
+      //  console.log("🖼️ Recibido microempresaId:", microempresaId);
 
         if (!microempresaId) {
             return res.status(400).json({ error: "No se proporcionó el ID de la microempresa." });
@@ -82,8 +82,8 @@ async function deleteFotoPerfil(req, res) {
             return respondError(req, res, 404, "Microempresa no encontrada");
         }
 
-        console.log("Valor almacenado de public_id en la base de datos:", microempresa.fotoPerfil?.public_id);
-        console.log("Valor recibido en la solicitud:", public_id);
+        //console.log("Valor almacenado de public_id en la base de datos:", microempresa.fotoPerfil?.public_id);
+        //console.log("Valor recibido en la solicitud:", public_id);
 
         // Validar si el public_id proporcionado coincide con el almacenado en fotoPerfil
         if (microempresa.fotoPerfil?.public_id !== public_id) {
@@ -110,9 +110,9 @@ async function deleteFotoPerfil(req, res) {
  */
 async function uploadImagenes(req, res) {
     try {
-        console.log("📥 Petición recibida en /imagenes/portafolio");
-        console.log("📥 Archivos recibidos en el backend:", req.files);
-        console.log("📥 Body recibido:", req.body);
+        //console.log("📥 Petición recibida en /imagenes/portafolio");
+        //console.log("📥 Archivos recibidos en el backend:", req.files);
+        //console.log("📥 Body recibido:", req.body);
 
         if (!req.files || req.files.length === 0) {
             return respondError(req, res, 400, "No se ha proporcionado ninguna imagen");
@@ -147,7 +147,7 @@ async function uploadImagenes(req, res) {
                 stream.end(file.buffer);
             });
 
-            console.log("✅ Imagen subida con éxito:", result.secure_url);
+            //console.log("✅ Imagen subida con éxito:", result.secure_url);
 
             // Añadir cada imagen subida al array de imágenes
             uploadedImages.push({
@@ -163,7 +163,7 @@ async function uploadImagenes(req, res) {
         }
 
         await microempresa.save();
-        console.log("✅ Microempresa actualizada con nuevas imágenes.");
+        //console.log("✅ Microempresa actualizada con nuevas imágenes.");
 
         return respondSuccess(req, res, 200, {
             message: "Imágenes subidas con éxito",

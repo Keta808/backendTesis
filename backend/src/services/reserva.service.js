@@ -39,14 +39,14 @@ Obtiene todas las reservas de la base de datos por id del trabajador
 
 async function getReservasByTrabajador(id) {
     try {
-      console.log("id", id);
+      //console.log("id", id);
       const reservas = await Reserva.find({ trabajador: id, estado: { $ne: 'Cancelada' } })
         .populate('cliente', 'nombre email')
         .populate('servicio', 'nombre')
         .exec();
           
       if (!reservas || reservas.length === 0) return [null, "No hay reservas"];
-      console.log("reservas", reservas);
+     //console.log("reservas", reservas);
       return [reservas, null];
     } catch (error) {
       handleError(error, "reserva.service -> getReservasByTrabajador");
@@ -86,15 +86,9 @@ function stringToDate(hora, fecha) {
 
 async function createReserva(reserva) {
     try {
-        console.log("reserva service", reserva);
+       // console.log("reserva service", reserva);
         const { hora_inicio, fecha, cliente, trabajador, servicio, estado } = reserva;
 
-        console.log("hora_inicio", hora_inicio);
-        console.log("fecha", fecha);
-        console.log("cliente", cliente);
-        console.log("trabajador", trabajador);
-        console.log("servicio", servicio);
-        console.log("estado", estado);
 
         // Validar formato de la hora de inicio
         const horaInicio = hora_inicio.split(':');
@@ -136,7 +130,7 @@ async function createReserva(reserva) {
         const disponibilidad = await Disponibilidad.findOne({ trabajador: trabajador, dia: diaSemana });
         if (!disponibilidad) return [null, "El trabajador no está disponible en este día"];
 
-        console.log("disponibilidad en servicio xd", disponibilidad);
+       // console.log("disponibilidad en servicio xd", disponibilidad);
         // Rango de disponibilidad
         const [inicioDisponible, finDisponible] = [
             new Date(`${fechaReserva.toDateString()} ${disponibilidad.hora_inicio}`),
@@ -174,15 +168,13 @@ async function createReserva(reserva) {
 
         // Validar que no exista una reserva que choque en horario
         const reservas = await Reserva.find({ trabajador, fecha: fechaReserva, estado:'Activa'});
-        console.log("reservas ENCONTRADAS PARA QUE?", reservas);
+        //console.log("reservas ENCONTRADAS PARA QUE?", reservas);
 
         for (let reservaExistente of reservas) {
             const horaInicioReserva = new Date(reservaExistente.hora_inicio);
             const horaFinReserva = new Date(horaInicioReserva);
             horaFinReserva.setMinutes(horaFinReserva.getMinutes() + reservaExistente.duracion);
-            console.log(" 1 -",(horaInicioDate >= horaInicioReserva && horaInicioDate < horaFinReserva));
-            console.log(" 2 -",(horaFin > horaInicioReserva && horaFin <= horaFinReserva));
-            console.log(" 3 -",(horaInicioDate <= horaInicioReserva && horaFin >= horaFinReserva));
+           
             if (
                 (horaInicioDate >= horaInicioReserva && horaInicioDate < horaFinReserva) ||
                 (horaFin > horaInicioReserva && horaFin <= horaFinReserva) ||
@@ -278,7 +270,7 @@ async function cancelReserva(id) {
 
 async function getReservasByCliente(id) {
     try {
-        console.log("id en servicio", id);
+       
 
         const ahora = new Date();
 
@@ -298,7 +290,7 @@ async function getReservasByCliente(id) {
             }
         }
 
-        console.log(`Reservas finalizadas automáticamente: ${reservasFinalizadas.length}`);
+      //  console.log(`Reservas finalizadas automáticamente: ${reservasFinalizadas.length}`);
 
         // Buscar y devolver todas las reservas actualizadas del cliente
         const reservas = await Reserva.find({ cliente: id })
@@ -391,7 +383,7 @@ async function getReservasPorFechaTrabajador(workerId, date) {
         trabajador: reserva.trabajador
       }));
   
-      console.log("reservas en servicio backend getReservasPorFechaTrabajador", reservasFormateadas);
+      //console.log("reservas en servicio backend getReservasPorFechaTrabajador", reservasFormateadas);
       return { reservas: reservasFormateadas };
     } catch (error) {
       console.error("Error al obtener reservas para el trabajador:", error);

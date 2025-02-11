@@ -135,7 +135,7 @@ async function getTrabajadorById(id) {
       .exec();
 
     if (!trabajador) return [null, "El trabajador no existe"];
-    console.log("SERVICES TRAB:", trabajador);
+    //console.log("SERVICES TRAB:", trabajador);
     return [trabajador, null];
   } catch (error) {
     handleError(error, "user.service -> getTrabajadorById");

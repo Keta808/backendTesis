@@ -66,10 +66,10 @@ async function getReservasByTrabajador(req, res) {
 
 async function createReserva(req, res) {
     try {
-        console.log("controller reserva create",req.body);
+        //console.log("controller reserva create",req.body);
 
         const { error } = reservaBodySchema.validate(req.body);
-        console.log("error",error);
+       // console.log("error",error);
         if (error) return respondError(req, res, 400, error.message);
         const [newReserva, errorReserva] = await ReservaService.createReserva(req.body);
         if (errorReserva) return respondError(req, res, 400, errorReserva);
@@ -156,7 +156,7 @@ async function cancelReserva(req, res) {
 
 async function getReservasByCliente(req, res) {
     try {
-        console.log(req.params);
+        //console.log(req.params);
         const { error } = reservaIdSchema.validate(req.params);
         if (error) return respondError(req, res, 400, error.message);
 
@@ -198,11 +198,11 @@ async function finalizarReserva(req, res) {
  */
 const getReservasPorFechaTrabajador = async (req, res) => {
     try {
-      console.log("getReservasPorFechaTrabajador req params", req.params);
+      //console.log("getReservasPorFechaTrabajador req params", req.params);
   
       const { workerId, date } = req.params;
-      console.log("getReservasPorFechaTrabajador workerId", workerId);
-      console.log("getReservasPorFechaTrabajador date", date);
+      //console.log("getReservasPorFechaTrabajador workerId", workerId);
+      //console.log("getReservasPorFechaTrabajador date", date);
   
       // Llamamos al servicio y esperamos un objeto con la propiedad "reservas"
       const result = await ReservaService.getReservasPorFechaTrabajador(workerId, date);

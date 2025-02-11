@@ -147,8 +147,8 @@ async function updateEnlaceParcial(id, fieldsToUpdate) {
         const estadoOriginal = enlaceFound.estado;
 
         // Mostrar los valores para confirmar la entrada
-        console.log("Estado original:", estadoOriginal);
-        console.log("Estado en fieldsToUpdate:", fieldsToUpdate.estado);
+       // console.log("Estado original:", estadoOriginal);
+       // console.log("Estado en fieldsToUpdate:", fieldsToUpdate.estado);
         
         // Actualiza solo los campos proporcionados
         Object.keys(fieldsToUpdate).forEach((key) => {
@@ -159,7 +159,7 @@ async function updateEnlaceParcial(id, fieldsToUpdate) {
 
         // Si el estado cambió a false, eliminamos al trabajador del arreglo de la microempresa
         if (estadoOriginal !== false && fieldsToUpdate.estado === false) {
-            console.log("El estado cambió a false. Eliminando trabajador de la microempresa...");
+           // console.log("El estado cambió a false. Eliminando trabajador de la microempresa...");
         
             // Intentar eliminar el trabajador directamente usando `$pull` y comprobar el resultado
             const trabajadorId = enlaceFound.id_trabajador.toString();
@@ -169,18 +169,18 @@ async function updateEnlaceParcial(id, fieldsToUpdate) {
                 { new: true },
             );
         
-            console.log("Resultado de la actualización de microempresa:", result);
+            //console.log("Resultado de la actualización de microempresa:", result);
         
             if (!result) {
-                console.log("Error: No se pudo actualizar la microempresa o eliminar el trabajador.");
+               // console.log("Error: No se pudo actualizar la microempresa o eliminar el trabajador.");
             } else {
-                console.log("Trabajador eliminado correctamente del arreglo trabajadores.");
+               // console.log("Trabajador eliminado correctamente del arreglo trabajadores.");
             }
         }
         
         // **Nuevo bloque**: Si el estado cambió a true, agregamos al trabajador al arreglo de la microempresa
         if (estadoOriginal !== true && fieldsToUpdate.estado === true) { 
-            console.log("El estado cambió a true. Agregando trabajador a la microempresa...");
+           // console.log("El estado cambió a true. Agregando trabajador a la microempresa...");
             
             const result = await Microempresa.findByIdAndUpdate( 
                 enlaceFound.id_microempresa,
@@ -188,12 +188,12 @@ async function updateEnlaceParcial(id, fieldsToUpdate) {
                 { new: true }
             );
 
-            console.log("Resultado de la actualización de microempresa:", result);
+         //   console.log("Resultado de la actualización de microempresa:", result);
             
             if (!result) {
-                console.log("Error: No se pudo actualizar la microempresa o agregar el trabajador.");
+                //console.log("Error: No se pudo actualizar la microempresa o agregar el trabajador.");
             } else {
-                console.log("Trabajador agregado correctamente al arreglo trabajadores.");
+               // console.log("Trabajador agregado correctamente al arreglo trabajadores.");
             }
         } // <-- Línea agregada
 

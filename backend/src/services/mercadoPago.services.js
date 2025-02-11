@@ -82,7 +82,7 @@ async function onBoarding(code, idMicroempresa) {
         if (!response.data) {
             return [null, "No se pudo obtener el token de acceso."];
         } 
-        console.log("Respuesta MP ONBOARDING: ", response.data);
+       // console.log("Respuesta MP ONBOARDING: ", response.data);
         const { access_token, refresh_token, user_id, public_key } = response.data; 
         
         const newMercadoPagoAcc = new MercadoPagoAcc( 

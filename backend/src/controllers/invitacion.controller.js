@@ -22,8 +22,8 @@ export async function enviarInvitacion(req, res) {
  */
 export async function aceptarInvitacion(req, res) {
     try {
-        console.log("📩 Petición recibida en aceptarInvitacion");
-        console.log("📩 Token recibido:", req.params.token);
+        //console.log("📩 Petición recibida en aceptarInvitacion");
+        //console.log("📩 Token recibido:", req.params.token);
 
         const { token } = req.params;
         const { userId } = req.body; // Recibe el ID del usuario desde el frontend
@@ -42,8 +42,8 @@ export async function aceptarInvitacion(req, res) {
  */
 export async function rechazarInvitacion(req, res) {
     try {
-        console.log("📩 Petición recibida en rechazarInvitacion");
-        console.log("📩 Token recibido:", req.params.token);
+        //console.log("📩 Petición recibida en rechazarInvitacion");
+        //console.log("📩 Token recibido:", req.params.token);
 
         const { token } = req.params;
 

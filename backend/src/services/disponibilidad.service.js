@@ -87,7 +87,7 @@ async function updateDisponibilidad(id, disponibilidad) {
         disponibilidadFound.excepciones = excepciones;
 
         await disponibilidadFound.save();
-        console.log(disponibilidad)
+        //console.log(disponibilidad)
         return [disponibilidadFound, null];
     } catch (error) {
         handleError(error, "disponibilidad.service -> updateDisponibilidad");
@@ -144,8 +144,8 @@ function formatTimeToString(time) {
 
 async function getAvailableSlots(workerId, date) {
     try {
-        console.log("Fecha de consulta en getAvailableSlots:", date);
-        console.log("ID del trabajador en getAvailableSlots:", workerId);
+       // console.log("Fecha de consulta en getAvailableSlots:", date);
+       // console.log("ID del trabajador en getAvailableSlots:", workerId);
     
 
         const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
@@ -154,7 +154,7 @@ async function getAvailableSlots(workerId, date) {
         const fechaConsulta = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2])); 
         const diaSemana = diasSemana[fechaConsulta.getUTCDay()];
 
-        console.log("Día de la semana:", diaSemana);
+      //  console.log("Día de la semana:", diaSemana);
         // Obtener la disponibilidad del trabajador
         const disponibilidad = await Disponibilidad.findOne({ trabajador: workerId, dia: diaSemana });
 
@@ -208,8 +208,8 @@ async function getAvailableSlots(workerId, date) {
             fin_no_disponible: excepcion.fin_no_disponible
         }));
 
-        console.log("Intervalos disponibles:", slotsDisponibles);
-        console.log("Excepciones del día:", excepciones);
+        //console.log("Intervalos disponibles:", slotsDisponibles);
+       // console.log("Excepciones del día:", excepciones);
 
         // Retornar los intervalos disponibles junto con las excepciones
         return [{ availableSlots: slotsDisponibles, excepciones }, null];
@@ -342,9 +342,9 @@ async function getHorariosDisponiblesMicroEmpresa(serviceId, date) {
 async function getTrabajadoresDisponiblesPorHora(serviceId, date, hora) {
     try {
         // Usa la función para obtener los horarios disponibles
-        console.log("Fecha de consulta en getTrabajadoresDisponiblesPorHora:", date);
-        console.log("Hora de consulta en getTrabajadoresDisponiblesPorHora:", hora);
-        console.log("ID del servicio en getTrabajadoresDisponiblesPorHora:", serviceId);
+        //console.log("Fecha de consulta en getTrabajadoresDisponiblesPorHora:", date);
+       // console.log("Hora de consulta en getTrabajadoresDisponiblesPorHora:", hora);
+        //console.log("ID del servicio en getTrabajadoresDisponiblesPorHora:", serviceId);
         
         const [availableSlots, error] = await getHorariosDisponiblesMicroEmpresa(serviceId, date);
 

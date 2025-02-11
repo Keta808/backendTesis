@@ -29,7 +29,7 @@ async function getSuscripcion(req, res) {
         const { error } = suscripcionIdSchema.validate(req.params);
 
         if (error) { 
-            console.log("Error en getSuscripcion:", error.message);
+           // console.log("Error en getSuscripcion:", error.message);
             return respondError(req, res, 400, error);
         } 
 
@@ -119,7 +119,7 @@ async function getIdentificationTypes(req, res) {
 async function cardForm(req, res) {
     try {
         const paymentData = req.body; 
-        console.log("CONTROLLER CARDFORM: Datos recibidos en el controller:", paymentData);
+       // console.log("CONTROLLER CARDFORM: Datos recibidos en el controller:", paymentData);
         // Llamada al servicio para generar cardTokenId
         const cardTokenId = await suscripcionService.cardForm(paymentData);
         return res.status(200).json({ cardTokenId }); 
@@ -131,7 +131,7 @@ async function cardForm(req, res) {
 async function crearSuscripcion(req, res) { 
     try {
         const suscripcionData = req.body; 
-        console.log("CONTROLLER CREAR SUS: Datos recibidos en el controller:", suscripcionData);
+       // console.log("CONTROLLER CREAR SUS: Datos recibidos en el controller:", suscripcionData);
         // Llamada al servicio para crear suscripción
         const suscripcion = await suscripcionService.crearSuscripcion(suscripcionData);
         return res.status(200).json(suscripcion); 
@@ -147,7 +147,7 @@ async function obtenerSuscripcion(req, res) {
         if (!plan|| !user || !cardTokenId || !payer_email) {
             return respondError(req, res, 400, "Faltan datos para crear la suscripción");
         }
-        console.log("CONTROLLER OBTENER SUS: Datos recibidos en el controller:", plan, user, cardTokenId, payer_email); 
+       // console.log("CONTROLLER OBTENER SUS: Datos recibidos en el controller:", plan, user, cardTokenId, payer_email); 
         const [suscripcion, error] = await suscripcionService.obtenerSuscripcion(plan, user, cardTokenId, payer_email);
         if (error) return respondError(req, res, 400, error.message); 
        
@@ -161,7 +161,7 @@ async function obtenerSuscripcion(req, res) {
 async function searchSuscripcionMP(req, res) {
     try {
         const { params } = req.query;
-        console.log("CONTROLLER SEARCH SUS: Datos recibidos en el controller:", params);
+       // console.log("CONTROLLER SEARCH SUS: Datos recibidos en el controller:", params);
         const [suscripcion, error] = await suscripcionService.searchSuscripcionMP(params);
         if (error) return respondError(req, res, 500, "Error al buscar la suscripción"); 
         return respondSuccess(req, res, 200, suscripcion);
@@ -178,7 +178,7 @@ async function getSuscripcionById(req, res) {
             return respondError(req, res, 400, "ID de suscripción no proporcionado.");
         }
 
-        console.log("CONTROLLER GET SUSCRIPCIÓN BY ID: ID recibido:", id);
+        //console.log("CONTROLLER GET SUSCRIPCIÓN BY ID: ID recibido:", id);
 
         const [suscripcion, error] = await suscripcionService.getSuscripcionById(id);
 
@@ -205,8 +205,8 @@ async function updateSuscripcionMP(req, res) {
             return respondError(req, res, 400, "No se proporcionaron datos para actualizar.");
         }
 
-        console.log("CONTROLLER UPDATE SUSCRIPCIÓN: ID recibido:", id);
-        console.log("Datos para actualizar:", data);
+       //console.log("CONTROLLER UPDATE SUSCRIPCIÓN: ID recibido:", id);
+        //console.log("Datos para actualizar:", data);
 
         const [suscripcionActualizada, error] = await suscripcionService.updateSuscripcionMP(id, data);
 
@@ -227,7 +227,7 @@ async function updateSuscripcionCard(req, res) {
         if (!preapprovalId || !newCardTokenId || !idUser) {
             return respondError(req, res, 400, "Faltan datos para actualizar la suscripción");
         }
-        console.log("CONTROLLER UPDATE SUS CARD: Datos recibidos en el controller:", preapprovalId, newCardTokenId, idUser);
+        //console.log("CONTROLLER UPDATE SUS CARD: Datos recibidos en el controller:", preapprovalId, newCardTokenId, idUser);
         const [suscripcion, error] = await suscripcionService.updateSuscripcionCard(preapprovalId, newCardTokenId, idUser);
         if (error) return respondError(req, res, 400, error.message); 
         return respondSuccess(req, res, 200, suscripcion);
@@ -239,14 +239,14 @@ async function updateSuscripcionCard(req, res) {
 
 async function cancelarSuscripcion(req, res){
     try { 
-        console.log("Body recibido en cancelarSuscripcion:", req.body);
+        //console.log("Body recibido en cancelarSuscripcion:", req.body);
 
         const { idUser, preapprovalId } = req.body; 
         
         if (!idUser || !preapprovalId) {
             return respondError(req, res, 400, "Faltan datos para cancelar la suscripción");
           }
-        console.log("CONTROLLER CANCELAR SUS: Datos recibidos en el controller:", idUser, preapprovalId);
+       // console.log("CONTROLLER CANCELAR SUS: Datos recibidos en el controller:", idUser, preapprovalId);
         const [suscripcion, error] = await suscripcionService.cancelarSuscripcion(idUser, preapprovalId);
         if (error) {
             console.error("Error en cancelarSuscripcionService:", error);
@@ -266,7 +266,7 @@ async function updateCardTokenByUserId(req, res) {
         if (!userId || !cardTokenId) {
             return respondError(req, res, 400, "Faltan datos para actualizar el token de la tarjeta");
         } 
-        console.log("CONTROLLER UPDATE CARD TOKEN: Datos recibidos en el controller:", userId, cardTokenId);
+       // console.log("CONTROLLER UPDATE CARD TOKEN: Datos recibidos en el controller:", userId, cardTokenId);
         const [suscripcion, error] = await suscripcionService.updateCardTokenByUserId(userId, cardTokenId);
         if (error) return respondError(req, res, 400, error.message);
         return respondSuccess(req, res, 200, suscripcion);
@@ -282,7 +282,7 @@ async function getUserSubscription(req, res) {
         if (!idUser) {
             return respondError(req, res, 400, "Faltan datos para obtener la suscripción");
         } 
-        console.log("CONTROLLER GET USER SUBSCRIPTION: ID recibido:", idUser); 
+       // console.log("CONTROLLER GET USER SUBSCRIPTION: ID recibido:", idUser); 
         const [suscripcion, error] = await suscripcionService.getUserSubscription(idUser); 
         if (error) return respondError(req, res, 400, error);
         return respondSuccess(req, res, 200, suscripcion);        
@@ -297,7 +297,7 @@ async function userChange(req, res) {
         if (!id) {
             return respondError(req, res, 400, "Faltan datos para obtener la suscripción");
         }
-        console.log("CONTROLLER USER CHANGE: ID recibido:", id); 
+        //console.log("CONTROLLER USER CHANGE: ID recibido:", id); 
         const [trabajador, error ] = await suscripcionService.userChange(id); 
         if (error) return respondError(req, res, 400, error);
         return respondSuccess(req, res, 200, trabajador);

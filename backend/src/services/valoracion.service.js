@@ -13,7 +13,7 @@ const { Trabajador, Cliente } = UserModels;
  */
 async function getValoracionesPorMicroempresa(microempresaId) {
     try {
-        console.log("microempresaId", microempresaId);  
+       // console.log("microempresaId", microempresaId);  
         const valoraciones = await Valoracion.find({ microempresa: microempresaId })
             .populate('cliente', 'nombre email')
             .populate('trabajador', 'nombre')

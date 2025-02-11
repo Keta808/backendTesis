@@ -8,7 +8,7 @@ import valoracionService from "../services/valoracion.service.js";
 async function getValoracionesPorMicroempresa(req, res) {
     try {
         const { microempresaId } = req.params;
-        console.log("microempresaId", microempresaId);
+        //console.log("microempresaId", microempresaId);
         const [valoraciones, error] = await valoracionService.getValoracionesPorMicroempresa(microempresaId);
 
         if (error) return res.status(404).json({ message: error });
