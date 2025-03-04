@@ -5,11 +5,17 @@ import mercadoPagoController from "../controllers/mercadoPago.controller.js";
 const router = Router();
 
 router.post("/crearMercadoPagoAcc", mercadoPagoController.crearMercadoPagoAcc);
-router.get("/getMercadoPagoAcc/:idMicroempresa", mercadoPagoController.getMercadoPagoAcc);
-router.put("/updateMercadoPagoAcc/:idMicroempresa", mercadoPagoController.updateMercadoPagoAcc);
-router.delete("/deleteMercadoPagoAcc/:idMicroempresa", mercadoPagoController.deleteMercadoPagoAcc);
+router.get("/getMercadoPagoAcc/:id", mercadoPagoController.getMercadoPagoAcc);
+router.put("/updateMercadoPagoAcc/:id", mercadoPagoController.updateMercadoPagoAcc);
+router.delete("/deleteMercadoPagoAcc/:id", mercadoPagoController.deleteMercadoPagoAcc);
 router.get("/getMercadoPagoAccs", mercadoPagoController.getMercadoPagoAccs);
-router.post("/generar-url/:idMicroempresa", mercadoPagoController.generarUrlOnBoarding); 
-router.post("/onBoarding", mercadoPagoController.onBoarding); 
+
+// Mercado Pago Routes
+router.post("/generar-url", mercadoPagoController.generarUrlOnBoarding); 
+router.get("/callback", mercadoPagoController.onBoarding);  
+router.post("/refreshtoken/:id", mercadoPagoController.refreshToken); 
+router.get("/redirect", mercadoPagoController.obtenerRedirect);
+
+router.post("/servicio/:idServicio", mercadoPagoController.crearPreferenciaServicio);
 
 export default router; 

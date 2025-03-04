@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 "use strict";
 // Importa el modulo 'express' para crear las rutas
 import { Router } from "express";
@@ -10,7 +11,8 @@ import { isAdmin, isTrabajador, isCliente } from "../middlewares/authorization.m
 
 /** Middleware de autentificacion */
 import authenticationMiddleware from "../middlewares/authentication.middleware.js";
-
+/** Middleware de suscripción */
+import suscripcionMiddleware from "../middlewares/verificarSuscripcion.middleware.js"; 
 /** Instancia del enrutador */
 const router = Router();
 
@@ -22,12 +24,12 @@ router.get("/fotoPerfil/:id", microempresaController.getMicroempresaFotoPerfil);
 router.get("/page/:page/limit/:limit", isTrabajador, microempresaController.getMicroempresasForPage);
 router.get("/:id", microempresaController.getMicroempresaById);
 // router.get("/nombre/:nombre", isAdmin, microempresaController.getMicroempresaByNombre);
-router.post("/", microempresaController.createMicroempresa);
+router.post("/", suscripcionMiddleware.verificarSuscripcion, microempresaController.createMicroempresa);
 router.put("/:id", microempresaController.updateMicroempresaById);
 router.delete("/:id", microempresaController.deleteMicroempresaById);
 router.get("/categoria/:categoria", microempresaController.getMicroempresasPorCategoria);
 router.get("/user/:trabajadorId", microempresaController.getMicroempresasByUser);
 router.get("/user/:trabajadorId/id", microempresaController.getMicroempresaIdByTrabajadorId);
-
+router.get("/maintrabajador/:idTrabajador", microempresaController.obtenerMicroempresaPorTrabajador);
 // Exporta el enrutador
 export default router;

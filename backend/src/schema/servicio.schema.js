@@ -27,9 +27,13 @@ const servicioBodySchema = Joi.object({
             "any.required": "La descripcion es obligatoria.",
             "string.base": "La descripcion debe ser de tipo string.",
         }),
-        porcentajeAbono: Joi.number().required().messages({
+        porcentajeAbono: Joi.number().min(0).max(100).messages({
             "number.base": "El porcentajeAbono debe ser de tipo number.",
-            "any.required": "El porcentajeAbono es obligatorio.",
+            "number.min": "El porcentaje de abono no puede ser menor a 0.",
+            "number.max": "El porcentaje de abono no puede ser mayor a 100.",
+        }),
+        urlPago: Joi.string().allow(null).messages({
+            "string.base": "El urlPago debe ser de tipo string.",
         }),
     }).messages({
         "object.unknown": "No se permiten propiedades adicionales.",

@@ -4,6 +4,7 @@ import Joi from "joi";
 
 /**
  * Esquema de validación para el cuerpo de la solicitud de inicio de sesión.
+ * Se permite el campo "kind" con valores "Trabajador", "Cliente" o "Administrador".
  * @constant {Object}
  */
 const authLoginBodySchema = Joi.object({
@@ -18,6 +19,13 @@ const authLoginBodySchema = Joi.object({
     "any.required": "La contraseña es obligatoria.",
     "string.base": "La contraseña debe ser de tipo string.",
   }),
+  kind: Joi.string()
+    .valid("Trabajador", "Cliente", "Administrador")
+    .optional()
+    .messages({
+      "any.only": "El tipo de usuario debe ser 'Trabajador', 'Cliente' o 'Administrador'.",
+      "string.base": "El tipo de usuario debe ser de tipo string.",
+    }),
 }).messages({
   "object.unknown": "No se permiten propiedades adicionales.",
 });

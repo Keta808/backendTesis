@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 import ReservaService from '../services/reserva.service.js'; 
 import { respondSuccess, respondError } from "../utils/resHandler.js";
 import { handleError } from "../utils/errorHandler.js";
@@ -66,10 +67,10 @@ async function getReservasByTrabajador(req, res) {
 
 async function createReserva(req, res) {
     try {
-        //console.log("controller reserva create",req.body);
+        console.log("controller reserva create",req.body);
 
         const { error } = reservaBodySchema.validate(req.body);
-       // console.log("error",error);
+        console.log("error",error);
         if (error) return respondError(req, res, 400, error.message);
         const [newReserva, errorReserva] = await ReservaService.createReserva(req.body);
         if (errorReserva) return respondError(req, res, 400, errorReserva);
@@ -109,10 +110,10 @@ async function updateReserva(req, res) {
 
 async function deleteReserva(req, res) {
     try {
-        const { error } = reservaIdSchema.validate(req.params);
-        if (error) return respondError(req, res, 400, error.message);
+       const id = req.params.id;
+       console.log("controller delete",id);
 
-        const [reserva, errorReserva] = await ReservaService.deleteReserva(req.params.id);
+        const [reserva, errorReserva] = await ReservaService.deleteReserva(id);
         if (errorReserva) return respondError(req, res, 400, errorReserva);
 
         respondSuccess(req, res, 200, reserva);
@@ -152,11 +153,37 @@ async function cancelReserva(req, res) {
     }
 }
 
+async function cancelReservaCliente(req, res) {
+  try {
+      // Valida el ID con el esquema de validación
+      const { error } = reservaIdSchema.validate(req.params);
+      if (error) {
+          return respondError(req, res, 400, `Error de validación: ${error.message}`);
+      }
+
+      // Llama al servicio para cancelar la reserva
+      const [reserva, errorReserva] = await ReservaService.cancelReservaCliente(req.params.id);
+
+      // Si hay un error al cancelar la reserva, responde con un mensaje de error
+      if (errorReserva) {
+          return respondError(req, res, 400, `Error al cancelar la reserva: ${errorReserva}`);
+      }
+
+      // Si todo es exitoso, responde con la reserva cancelada
+      respondSuccess(req, res, 200, reserva);
+  } catch (error) {
+      // Manejo de errores generales
+      handleError(error, 'reserva.controller -> cancelReserva');
+      respondError(req, res, 500, `Error interno del servidor: ${error.message}`);
+  }
+}
+
+
 //get reservas cliente
 
 async function getReservasByCliente(req, res) {
     try {
-        //console.log(req.params);
+        console.log(req.params);
         const { error } = reservaIdSchema.validate(req.params);
         if (error) return respondError(req, res, 400, error.message);
 
@@ -198,11 +225,11 @@ async function finalizarReserva(req, res) {
  */
 const getReservasPorFechaTrabajador = async (req, res) => {
     try {
-      //console.log("getReservasPorFechaTrabajador req params", req.params);
+      console.log("getReservasPorFechaTrabajador req params", req.params);
   
       const { workerId, date } = req.params;
-      //console.log("getReservasPorFechaTrabajador workerId", workerId);
-      //console.log("getReservasPorFechaTrabajador date", date);
+      console.log("getReservasPorFechaTrabajador workerId", workerId);
+      console.log("getReservasPorFechaTrabajador date", date);
   
       // Llamamos al servicio y esperamos un objeto con la propiedad "reservas"
       const result = await ReservaService.getReservasPorFechaTrabajador(workerId, date);
@@ -240,16 +267,79 @@ const getReservasPorFechaTrabajador = async (req, res) => {
     }
   };
   
+  async function createReservaHorario(req, res) {
+    try {
+        console.log("createReservaHorario BODY:", req.body);
+        
+        const { hora_inicio, fecha, cliente, trabajador, servicio, estado } = req.body;
 
+        // Validación de campos obligatorios
+        if (!hora_inicio || !fecha || !cliente || !trabajador || !servicio || !estado) {
+            return res.status(400).json({
+                message: "Todos los campos son obligatorios: hora_inicio, fecha, cliente, trabajador, servicio y estado."
+            });
+        }
+
+        // Llamada al servicio
+        const [nuevaReserva, error] = await ReservaService.createReservaHorario(req.body);
+
+        if (error) {
+            return res.status(400).json({ message: error });
+        }
+
+        // Respuesta exitosa
+        return res.status(201).json({
+            message: "Reserva creada exitosamente.",
+            reserva: nuevaReserva
+        });
+    } catch (error) {
+        console.error("Error al crear la reserva:", error);
+        return res.status(500).json({ message: "Ocurrió un error al crear la reserva." });
+    }
+}
+
+
+async function getActiveReservationCount(req, res) {
+  try {
+    const { clientId, microempresaId } = req.params;
+    const [count, error] = await ReservaService.getActiveReservationCount(clientId, microempresaId);
+    if (error) return respondError(req, res, 400, error);
+
+    respondSuccess(req, res, 200, { count });
+  } catch (error) {
+    handleError(error, "reserva.controller -> getActiveReservationCount");
+    respondError(req, res, 400, error.message);
+  }
+}
+
+async function getUrlPagoByReservaId(req, res) {
+  try {
+    const { idReserva } = req.params; 
+    if (!idReserva) return respondError(req, res, 400, "Falta el ID de la reserva.");
+    const [servicio, error] = await ReservaService.getUrlPagoByReservaId(idReserva);
+    if (error) return respondError(req, res, 400, error);
+    respondSuccess(req, res, 200, servicio );
+  } catch (error) {
+    handleError(error, "reserva.controller -> getUrlPagoByReservaId");
+    respondError(req, res, 400, error.message);
+  }
+}
 export default { 
     getReservas,
     getReservasByTrabajador, 
-    createReserva ,
-    deleteReserva ,
+    createReserva,
+    deleteReserva,
     updateReserva,
     cancelReserva,
+    cancelReservaCliente,
+    
     getReservasByCliente,
     finalizarReserva,
     getReservasPorFechaTrabajador,
-    getReservasPorFechaMicroempresa};
+    getReservasPorFechaMicroempresa,
+  
+    createReservaHorario,
+    getActiveReservationCount,
+    getUrlPagoByReservaId,
+  };
 

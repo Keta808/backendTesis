@@ -113,8 +113,8 @@ async function crearPlanBasico() {
               }
             );
 
-       // console.log(response.data); 
-      //  console.log(`Plan creado: ${plan.reason}`, response.data);  
+        console.log(response.data); 
+        console.log(`Plan creado: ${plan.reason}`, response.data);  
         
         const existingPlan = await Plan.findOne({ mercadoPagoId: response.data.id }).exec();
         if (existingPlan) {
@@ -123,7 +123,7 @@ async function crearPlanBasico() {
         // Guardar el plan en la base de datos
         const newPlan = new Plan({
             tipo_plan: 'Plan Basico',
-            precio: 3990,
+            precio: 3900,
             mercadoPagoId: response.data.id,
             estado: response.data.status,
             fecha_creacion: response.data.date_created,
@@ -170,8 +170,8 @@ async function crearPlanPremium(){
           }
         );
 
-  //  console.log(response.data); 
-   // console.log(`Plan creado: ${planP.reason}`, response.data); 
+    console.log(response.data); 
+    console.log(`Plan creado: ${planP.reason}`, response.data); 
     
 
     // Guardar el plan en la base de datos
@@ -230,8 +230,8 @@ async function crearPlanGratuito() {
         }
       }
     ); 
-    //console.log(response.data); 
-    //console.log(`Plan creado: ${planG.reason}`, response.data); 
+    console.log(response.data); 
+    console.log(`Plan creado: ${planG.reason}`, response.data); 
 
       // Crear y guardar el plan gratuito en MongoDB
       const newPlan = new Plan({
@@ -244,7 +244,7 @@ async function crearPlanGratuito() {
 
       await newPlan.save(); // Guardar en MongoDB
 
-      //console.log("Plan gratuito creado exitosamente:", newPlan);
+      console.log("Plan gratuito creado exitosamente:", newPlan);
       return { message: "Plan gratuito creado exitosamente.", plan: newPlan };
   } catch (error) {
       console.error("Error al crear el plan gratuito:", error.message);
@@ -267,7 +267,7 @@ async function buscarPlanDeSuscripcion(params){
           params: params
         }
       ); 
-      //console.log(response.data);
+      console.log(response.data);
       return response.data; 
 
     } catch (error) {
@@ -286,7 +286,7 @@ async function obtenerPlanDeSuscripcion(id){
             }
           }
         );
-       // console.log(response.data);
+        console.log(response.data);
         return response.data; 
     } catch (error) {
         handleError(error, "plan.service -> obtenerPlanDeSuscripcion");
@@ -306,7 +306,7 @@ async function actualizarPlanDeSuscripcion(id, plan){
             }
           }
         );
-       // console.log(response.data);
+        console.log(response.data);
         return response.data; 
     } catch (error) {
         handleError(error, "plan.service -> actualizarPlanDeSuscripcion");

@@ -25,4 +25,11 @@ export const REFRESH_JWT_SECRET = process.env.REFRESH_JWT_SECRET;
 
 // MercadoPago API credentials
 export const ACCESS_TOKEN = process.env.ACCESS_TOKEN; 
+export const CLIENT_SECRET = process.env.CLIENT_SECRET;
+export const CLIENT_ID = process.env.CLIENT_ID;
+
+// Mercado Pago Redirect URI
+export const MP_REDIRECT_URI = process.env.MP_REDIRECT_URI; 
+// Webhook URL
+export const MP_WEBHOOK_URL = process.env.MP_WEBHOOK_URL;
 

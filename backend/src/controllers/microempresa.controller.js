@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable space-before-blocks */
 /* eslint-disable require-jsdoc */
 /* eslint-disable no-unused-vars */
@@ -8,6 +9,7 @@ import MicroempresaService from "../services/microempresa.service.js";
 import Microempresa from "../models/microempresa.model.js";
 import { microempresaBodySchema, microempresaIdSchema } from "../schema/microempresa.schema.js";
 import { handleError } from "../utils/errorHandler.js";
+import mongoose from "mongoose";
 
 /**
  * Obtiene todas las microempresas de la base de datos
@@ -265,6 +267,19 @@ async function getMicroempresaIdByTrabajadorId(req, res) {
   } catch (error) {
     res.status(500).json({ state: "Error", message: error.message });
   }
+} 
+// Obtener solo 1 microepresa por user id 
+async function obtenerMicroempresaPorTrabajador(req, res) { 
+  try {
+    const { idTrabajador } = req.params; 
+    if (!idTrabajador) return respondError(req, res, 400, "No se ha proporcionado el id del trabajador.");
+    const [microempresa, error] = await MicroempresaService.obtenerMicroempresaPorTrabajador(idTrabajador);
+    if (error) return respondError(req, res, 400, error); 
+    return respondSuccess(req, res, 200, microempresa);
+  } catch (error){
+    handleError(error, "microempresa.controller -> obtenerMicroempresaPorTrabajador");
+    return respondError(req, res, 400, error);
+  }
 }
 
 
@@ -279,5 +294,6 @@ export default {
     getMicroempresasPorCategoria,
     getMicromempresaPorNombre,
     getMicroempresasByUser,
-    getMicroempresaIdByTrabajadorId
+    getMicroempresaIdByTrabajadorId,
+    obtenerMicroempresaPorTrabajador,
 };

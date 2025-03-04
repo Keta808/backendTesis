@@ -40,7 +40,5 @@ const ReservaSchema = new mongoose.Schema({
     versionKey: false,
 });
 
-
-
 const Reserva = mongoose.model("Reserva", ReservaSchema);
 export default Reserva; 

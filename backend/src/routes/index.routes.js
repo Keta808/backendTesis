@@ -23,9 +23,10 @@ import enlaceRoutes from "./enlace.routes.js";
 
 import reservaRoutes from "./reserva.routes.js"; 
 import servicioRoutes from "./servicio.routes.js";
-import disponibilidadRoutes from "./disponibilidad.routes.js";
 
 import valoracionRoutes from "./valoracion.routes.js";
+
+import horarioRoutes from "./horario.routes.js";    
 
 /** Middleware de autenticación */
 import authenticationMiddleware from "../middlewares/authentication.middleware.js";
@@ -34,7 +35,7 @@ import authenticationMiddleware from "../middlewares/authentication.middleware.j
 const router = Router();
 
 // Define las rutas para los usuarios /api/usuarios
-router.use("/users", authenticationMiddleware, userRoutes);
+router.use("/users", userRoutes);
 // Define las rutas para la autenticación /api/auth
 router.use("/auth", authRoutes);
 
@@ -50,6 +51,10 @@ import planRoutes from "./plan.routes.js";
 router.use("/planes", authenticationMiddleware, planRoutes);
 import SuscripcionRoutes from "./suscripcion.routes.js";
 router.use("/suscripcion", authenticationMiddleware, SuscripcionRoutes); 
+import mercadoPagoRoutes from "./mercadoPago.routes.js";
+router.use("/mercadopago", mercadoPagoRoutes);
+import paymentRoutes from "./payment.routes.js";
+router.use("/payments", authenticationMiddleware, paymentRoutes);
 
 
 // Define las rutas para las imagenes /api/imagenes
@@ -57,11 +62,11 @@ router.use("/imagenes", authenticationMiddleware, imageRoutes);
 
 router.use("/servicios", authenticationMiddleware, servicioRoutes);
 
-router.use("/disponibilidad", authenticationMiddleware, disponibilidadRoutes);
-
 router.use("/valoraciones", authenticationMiddleware, valoracionRoutes);
 // Define las rutas para las invitaciones /api/invitaciones
 router.use("/invitaciones", authenticationMiddleware, invitacionRoutes);
+
+router.use("/horarios", authenticationMiddleware, horarioRoutes);
 
 // Exporta el enrutador
 export default router;

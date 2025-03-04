@@ -20,14 +20,13 @@ const invitacionSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true, // Evita que la misma persona reciba múltiples invitaciones activas
       lowercase: true,
       trim: true,
     },
-    token: {
+    codigoInvitacion: {
       type: String,
       required: true,
-      unique: true, // Token único para validar la invitación
+      unique: true, // Asegura que cada código sea único
     },
     estado: {
       type: String,
@@ -36,10 +35,10 @@ const invitacionSchema = new mongoose.Schema(
     },
     fechaExpiracion: {
       type: Date,
-      default: () => new Date(Date.now() + 24 * 60 * 60 * 1000), // Expira en 24 horas
+      default: () => new Date(Date.now() + 10 * 60 * 1000),
     },
   },
-  { timestamps: true }, // Agrega createdAt y updatedAt automáticamente
+  { timestamps: true } // Agrega createdAt y updatedAt automáticamente
 );
 
 export default mongoose.model("Invitacion", invitacionSchema);

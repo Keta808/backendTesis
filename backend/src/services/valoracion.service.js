@@ -3,6 +3,7 @@ import { handleError } from "../utils/errorHandler.js";
 import UserModels from "../models/user.model.js";
 import Reserva from "../models/reserva.model.js";
 import Enlace from "../models/enlace.model.js";
+import Microempresa from "../models/microempresa.model.js";
 
 const { Trabajador, Cliente } = UserModels;
 
@@ -13,7 +14,7 @@ const { Trabajador, Cliente } = UserModels;
  */
 async function getValoracionesPorMicroempresa(microempresaId) {
     try {
-       // console.log("microempresaId", microempresaId);  
+        console.log("microempresaId", microempresaId);  
         const valoraciones = await Valoracion.find({ microempresa: microempresaId })
             .populate('cliente', 'nombre email')
             .populate('trabajador', 'nombre')
@@ -85,6 +86,7 @@ async function crearValoracion(valoracionData) {
             comentario
         });
 
+        console.log("nuevaValoracion", nuevaValoracion);
         await nuevaValoracion.save();
         return [nuevaValoracion, null];
     } catch (error) {

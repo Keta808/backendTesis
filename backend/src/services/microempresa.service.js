@@ -1,9 +1,13 @@
+/* eslint-disable max-len */
 /* eslint-disable require-jsdoc */
 "use strict";
 
 import Microempresa from "../models/microempresa.model.js";
+import cloudinary from "../config/cloudinary.js";
 import Enlace from "../models/enlace.model.js";
+import enlaceService from "./enlace.service.js";
 import { handleError } from "../utils/errorHandler.js";
+import mongoose from "mongoose";
 
 /**
  * Obtiene todas las microempresas de la base de datos
@@ -63,6 +67,8 @@ async function getMicroempresasForPage(page = 1, limit = 10) {
  * @returns {Promise} Promesa con el objeto de microempresa creado
  */
 async function createMicroempresa(microempresa) {
+    const session = await mongoose.startSession();
+    session.startTransaction(); // Inicia la transacción explícitamente
     try {
         const {
             nombre,
@@ -71,19 +77,28 @@ async function createMicroempresa(microempresa) {
             direccion,
             email,
             categoria,
-            idPlan,
+            idSuscripcion,
             idTrabajador,
             imagenes,
         } = microempresa;
 
-        // Verificar si la microempresa ya existe por email
-        const microempresaFound = await Microempresa.findOne({ email: microempresa.email });
-        if (microempresaFound) return [null, "La microempresa ya existe"];
+        // 📌 **Verificar si el trabajador ya tiene una microempresa**
+        const existingMicroempresa = await Microempresa.findOne({ idTrabajador });
+        if (existingMicroempresa) {
+            return [null, "El trabajador ya tiene una microempresa registrada"];
+        }
 
-        // URL de imagen de perfil predeterminada
-        const defaultProfileImageUrl = "https://res.cloudinary.com/dzkna5hbk/image/upload/v1737576587/defaultProfile_ysxp6x.webp";
+        // 📌 **Verificar si ya existe una microempresa con el mismo email**
+        const microempresaFound = await Microempresa.findOne({ email });
+        if (microempresaFound) {
+            return [null, "La microempresa ya existe con este email"];
+        }
 
-        // Crear la nueva microempresa con la imagen predeterminada si no se proporciona
+        // 📌 **URL de imagen de perfil predeterminada**
+        const defaultProfileImageUrl =
+            "https://res.cloudinary.com/dzkna5hbk/image/upload/v1737576587/defaultProfile_ysxp6x.webp";
+
+        // 📌 **Crear la nueva microempresa con la imagen predeterminada si no se proporciona**
         const newMicroempresa = new Microempresa({
             nombre,
             descripcion,
@@ -91,22 +106,42 @@ async function createMicroempresa(microempresa) {
             direccion,
             email,
             categoria,
-            idPlan,
+            idSuscripcion,
             idTrabajador,
             imagenes,
             fotoPerfil: {
                 url: defaultProfileImageUrl,
-                public_id: null, // No hay un public_id para la imagen predeterminada
+                public_id: null,
             },
         });
 
-        // Guardar la microempresa en la base de datos
-        await newMicroempresa.save();
+        // 📌 **Guardar la microempresa en la base de datos**
+        await newMicroempresa.save({ session });
+
+        // 📌 **Confirmar la transacción antes de crear el enlace**
+        await session.commitTransaction();
+        session.endSession(); // ✅ Finalizamos la sesión antes de continuar
+
+        // 📌 **Ahora creamos el enlace fuera de la transacción**
+        const [, enlaceError] = await enlaceService.createEnlace({
+            id_trabajador: idTrabajador,
+            id_role: "66f97c98608cc1793de890ad", // ID de Admin de la microempresa
+            id_microempresa: newMicroempresa._id,
+            fecha_inicio: new Date(),
+            estado: true,
+        });
+
+        if (enlaceError) {
+            throw new Error("Error al crear el enlace del dueño: " + enlaceError);
+        }
 
         return [newMicroempresa, null];
     } catch (error) {
+        await session.abortTransaction(); // 📌 **Si hay error, deshacemos la transacción**
         handleError(error, "microempresa.service -> createMicroempresa");
         return [null, "Error interno al crear la microempresa"];
+    } finally {
+        session.endSession(); // 📌 **Nos aseguramos de cerrar la sesión**
     }
 }
 
@@ -151,7 +186,7 @@ async function updateMicroempresaById(id, microempresa) {
             direccion,
             email,
             categoria,
-            idPlan,
+            idSuscripcion,
             idTrabajador,
             imagenes,
         } = microempresa;
@@ -168,7 +203,7 @@ async function updateMicroempresaById(id, microempresa) {
         if (direccion) microempresaFound.direccion = direccion;
         if (email) microempresaFound.email = email;
         if (categoria) microempresaFound.categoria = categoria;
-        microempresaFound.idPlan = idPlan;
+        microempresaFound.idSuscripcion = idSuscripcion;
         if (idTrabajador) microempresaFound.idTrabajador = idTrabajador;
         microempresaFound.imagenes = imagenes;
 
@@ -186,15 +221,35 @@ async function updateMicroempresaById(id, microempresa) {
  */
 async function deleteMicroempresaById(id) {
     try {
-        const deletedMicroempresa = await Microempresa.findByIdAndDelete(id);
-        if (!deletedMicroempresa) return [null, "La microempresa no existe"];
+        // 📌 **Buscar la microempresa antes de eliminarla**
+        const microempresa = await Microempresa.findById(id);
+        if (!microempresa) return [null, "La microempresa no existe"];
 
+        // 📌 **Eliminar la foto de perfil en Cloudinary**
+        if (microempresa.fotoPerfil?.public_id) {
+            console.log(`🗑 Eliminando foto de perfil: ${microempresa.fotoPerfil.public_id}`);
+            await cloudinary.uploader.destroy(microempresa.fotoPerfil.public_id);
+        }
+
+        // 📌 **Eliminar todas las imágenes de la galería**
+        if (microempresa.imagenes.length > 0) {
+            for (const img of microempresa.imagenes) {
+                console.log(`🗑 Eliminando imagen de la galería: ${img.public_id}`);
+                await cloudinary.uploader.destroy(img.public_id);
+            }
+        }
+
+        // 📌 **Eliminar la microempresa después de eliminar las imágenes**
+        const deletedMicroempresa = await Microempresa.findByIdAndDelete(id);
+        if (!deletedMicroempresa) return [null, "Error al eliminar la microempresa"];
+
+        console.log(`✅ Microempresa eliminada con éxito: ${deletedMicroempresa._id}`);
         return [deletedMicroempresa, null];
     } catch (error) {
         handleError(error, "microempresa.service -> deleteMicroempresaById");
         return [null, "Error al eliminar la microempresa"];
     }
-} 
+}
 
 // eslint-disable-next-line require-jsdoc
 async function getMicroempresasPorCategoria(categoria) {
@@ -248,13 +303,29 @@ async function getMicroempresasByUser(trabajadorId) {
       throw new Error("Error al obtener microempresas del trabajador");
     }
 }
+// Misma funcion getMicroempresasByUser pero para 1 sola microempresa y con validaciones(para evitar errores)
+async function obtenerMicroempresaPorTrabajador(idTrabajador) {
+    try {
+        if (!idTrabajador) {
+            return [null, "El id del trabajador es inválido"];
+        }
+        const microempresa = await Microempresa.findOne({ idTrabajador: idTrabajador });
 
-//servicio que retorna SOLO el id de la microempresa por el id de su trabajador
+        if (!microempresa) return [null, "No se encontró una microempresa para este usuario."];
+
+        return [microempresa, null];     
+    } catch (error) {
+        handleError(error, "microempresa.service -> obtenerMicroempresaPorTrabajador");
+        return [null, "Error al obtener la microempresa"]; 
+    }
+}
+// servicio que retorna SOLO el id de la microempresa por el id de su trabajador
 
 async function getMicroempresaIdByTrabajadorId(trabajadorId) {
     try {
         const microempresa = await Microempresa.findOne({ idTrabajador: trabajadorId });
         if (!microempresa) return [null, "No hay microempresas"];
+        console.log("📡 ID de la microempresa obtenido:", microempresa._id);
         return [microempresa._id, null];
     } catch (error) {
         handleError(error, "microempresa.service -> getMicroempresaIdByTrabajadorId");
@@ -274,7 +345,6 @@ export default {
     getMicromempresaPorNombre,
     getMicroempresasByUser,
     getMicroempresaIdByTrabajadorId,
-
-    
+    obtenerMicroempresaPorTrabajador,
 };
 

@@ -52,9 +52,9 @@ const microempresaBodySchema = joi.object({
             "string.base": "La categoría debe ser de tipo string.",
         }),
         idSuscripcion: joi.string().custom(objectIdValidator).messages({
-            "string.empty": "El idPlan no puede estar vacío.",
+            "string.empty": "El idSuscripcion no puede estar vacío.",
             // "any.required": "El idPlan es obligatorio.",
-            "string.base": "El idPlan debe ser de tipo string.",
+            "string.base": "El idSuscripcion debe ser de tipo string.",
         }),
         idTrabajador: joi.string().required().custom(objectIdValidator).messages({
             "string.empty": "El idTrabajador no puede estar vacío.",

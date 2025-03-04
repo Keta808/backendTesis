@@ -37,6 +37,7 @@ const MicroempresaSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
+        Unique: true,
     },
     trabajadores: [
         {

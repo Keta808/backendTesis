@@ -7,6 +7,8 @@
 // Importa el objeto por defecto que contiene todos los modelos
 import UserModels from "../models/user.model.js"; 
 
+import bcrypt from "bcrypt";
+
 // Extrae el modelo 'User'
 const { User, Trabajador, Cliente, Administrador } = UserModels;
 
@@ -67,29 +69,30 @@ async function createUser(user) {
  * @param {Object} newPassword Nueva contraseña del usuario
  * @returns {Promise} Promesa con el objeto de usuario actualizado
  */
-async function changePassword(email, oldPassword, newPassword) {
+async function changePassword(userId, oldPassword, newPassword) {
   try {
-    const userFound = await User.findOne({ email: email });
+
+    const userFound = await User.findById(userId);
     if (!userFound) {
-      throw new Error('User not found');
+      return [null, "Usuario no encontrado"];
     }
-    const matchPassword = await User.comparePassword(
-      oldPassword,
-      userFound.password,
-    );
+
+    // Verificar si la contraseña antigua es correcta
+    const matchPassword = await User.comparePassword(oldPassword, userFound.password);
     if (!matchPassword) {
-      return [null, "La contraseña no coincide"];
+      return [null, "La contraseña actual no es correcta"];
     }
-    // Hash the new password and update the user
+
+    // Hash de la nueva contraseña y actualización
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
-    userFound.password = hashedPassword;
-
+    userFound.password = await bcrypt.hash(newPassword, salt);
+    
     await userFound.save();
-
-    return [userFound, null];
+    
+    return ["Contraseña actualizada con éxito", null];
   } catch (error) {
     handleError(error, "user.service -> changePassword");
+    return [null, "Error al cambiar la contraseña"];
   }
 }
 
@@ -117,6 +120,7 @@ async function createTrabajador(trabajador) {
       email,
       password: await User.encryptPassword(password),
       state: myState,
+      isAdmin: false,    
     });
 
     // Guardar el nuevo Trabajador en la base de datos
@@ -135,10 +139,23 @@ async function getTrabajadorById(id) {
       .exec();
 
     if (!trabajador) return [null, "El trabajador no existe"];
-    //console.log("SERVICES TRAB:", trabajador);
+    console.log("SERVICES TRAB:", trabajador);
     return [trabajador, null];
   } catch (error) {
     handleError(error, "user.service -> getTrabajadorById");
+  }
+} 
+
+async function getClienteById(id) {
+  try {
+    const cliente = await Cliente.findById({ _id: id })
+      .select("-password")
+      .populate("state")
+      .exec();
+    if (!cliente) return [null, "El cliente no existe"];
+    return [cliente, null];
+  }catch (error) {
+    handleError(error, "user.service -> getClienteById");
   }
 }
 /**
@@ -252,7 +269,73 @@ async function updateTrabajador(id, trabajador) {
     handleError(error, "user.service -> updateTrabajador");
   }
 }
+async function updateCliente(id, cliente) {
+  try {
+    if (!id) return [null, "No se recibió el ID del cliente"];  
+    const existingCliente = await Cliente.findById(id).exec();  
+    if (!existingCliente) return [null, "El cliente no existe"];
+    if(cliente.nombre) existingCliente.nombre = cliente.nombre;
+    if(cliente.apellido) existingCliente.apellido = cliente.apellido;
+    if(cliente.telefono) existingCliente.telefono = cliente.telefono;
+    if(cliente.email) existingCliente.email = cliente.email;
+    await existingCliente.save();
+    return [existingCliente, null];
+  } catch (error) {
+    handleError(error, "user.service -> updateCliente");
+  }
+}
 
+/**
+ * Convierte un Cliente en Trabajador, manteniendo los mismos datos.
+ * @param {string} id - ID del usuario Cliente
+ * @returns {Array} - [NuevoTrabajador, null] si tuvo éxito, [null, error] si falló.
+ */
+async function userChange(id) {
+  try {
+      if (!id) return [null, "ID de usuario no proporcionado."];
+
+      const user = await UserModels.Cliente.findById(id);
+      if (!user) return [null, "El usuario (cliente) no existe."];
+
+      // 📌 Verificar si ya existe como Trabajador
+      const existingTrabajador = await UserModels.Trabajador.findOne({ email: user.email });
+      if (existingTrabajador) return [existingTrabajador, null]; // Si ya existe, lo reutilizamos
+
+      const newTrabajador = new UserModels.Trabajador({
+          nombre: user.nombre,
+          apellido: user.apellido,
+          telefono: user.telefono,
+          email: user.email,
+          password: user.password,
+          state: user.state,
+          isAdmin: user.isAdmin,
+      });
+
+      await newTrabajador.save();
+      console.log("✅ Usuario cambiado a Trabajador:", newTrabajador);
+
+      return [newTrabajador, null];
+  } catch (error) {
+      console.error("❌ Error al cambiar el usuario a Trabajador:", error.message);
+      handleError(error, "user.service -> userChange");
+      return [null, error.message];
+  }
+}
+
+async function updateTrabajadorIsAdmin(id, isAdminValue = true) {
+  try {
+    // Actualiza el campo isAdmin del trabajador
+    const updatedTrabajador = await Trabajador.findByIdAndUpdate(
+      id,
+      { isAdmin: isAdminValue },
+      { new: true },
+    ).exec();
+    return [updatedTrabajador, null];
+  } catch (error) {
+    handleError(error, "user.service -> updateTrabajadorIsAdmin");
+    return [null, error.message];
+  }
+}
 
 export default {
   getUsers,
@@ -265,4 +348,8 @@ export default {
   deleteUser,
   getTrabajadorById,
   updateTrabajador,
+  userChange,
+  getClienteById,
+  updateCliente,
+  updateTrabajadorIsAdmin,
 };

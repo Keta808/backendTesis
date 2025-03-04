@@ -1,10 +1,13 @@
 import Invitacion from "../models/invitacion.model.js";
 import Enlace from "../models/enlace.model.js";
+import EnlaceService from "../services/enlace.service.js";
+const { updateEnlaceParcial } = EnlaceService;
 import Microempresa from "../models/microempresa.model.js";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-import crypto from "crypto";
 import mongoose from "mongoose";
+import UserService from "../services/user.service.js"; // ✅ Importar el servicio completo
+import UserModels from "../models/user.model.js";
 
 dotenv.config(); // Cargar variables de entorno
 
@@ -17,62 +20,77 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
- * Genera un token aleatorio para la invitación
+ * Genera un código numérico de 6 dígitos para la invitación
  */
-const generateToken = () => crypto.randomBytes(32).toString("hex");
+function generateInvitationCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString(); // Código de 6 dígitos
+}
 
 /**
- * Crea una nueva invitación para un trabajador
+ * Crea una nueva invitación con código numérico
  */
-export async function crearInvitacion({ idMicroempresa, email }) {
+async function crearInvitacion({ idMicroempresa, email }) {
     try {
-        // Verificar que la microempresa existe
+        // 🏢 **Verificar que la microempresa existe**
         const microempresa = await Microempresa.findById(idMicroempresa);
         if (!microempresa) throw new Error("La microempresa no existe");
 
-        // Verificar si ya tiene 10 trabajadores
-        const totalTrabajadores = await Enlace.countDocuments({ id_microempresa: idMicroempresa });
-        if (totalTrabajadores >= 10) throw new Error("La microempresa ya alcanzó el límite de 10 trabajadores");
+        // 🛠 **Verificar si ya tiene 10 trabajadores (solo los activos)**
+        const totalTrabajadoresActivos = await Enlace.countDocuments({
+            id_microempresa: idMicroempresa,
+            estado: true, // 📌 Filtra solo trabajadores activos
+        });
 
-        // Crear el token único para la invitación
-        const token = generateToken();
-       // console.log("🔑 Token generado en backend:", token);
+        console.log("📌 Cantidad total de trabajadores en la BD (incluye inactivos):", await Enlace.countDocuments({ id_microempresa: idMicroempresa }));
+        console.log("✅ Trabajadores activos:", totalTrabajadoresActivos);
+        console.log("🔍 Lista completa de trabajadores en microempresa:", microempresa.trabajadores);
 
-        // Crear la invitación con estado "pendiente"
+        if (totalTrabajadoresActivos >= 10) {
+            throw new Error("La microempresa ya alcanzó el límite de 10 trabajadores");
+        }
+
+        // 🛠 **Verificar si ya existe una invitación activa para el mismo email**
+        const invitacionExistente = await Invitacion.findOne({
+            idMicroempresa,
+            email,
+            estado: "pendiente",
+        });
+
+        if (invitacionExistente) {
+            throw new Error("Ya existe una invitación activa para este usuario");
+        }
+
+        // 🔑 **Generar el código único para la invitación**
+        const codigoInvitacion = generateInvitationCode();
+        console.log("🔑 Código generado en backend:", codigoInvitacion);
+        if (!codigoInvitacion) throw new Error("Error: codigoInvitacion no se generó correctamente.");
+
+        // 📌 **Guardar la invitación en la base de datos ANTES de enviar el correo**
         const nuevaInvitacion = await Invitacion.create({
             idMicroempresa,
             email,
             id_role: new mongoose.Types.ObjectId("67a4f4fd19fd800efa096295"), // ID del rol "Trabajador"
             estado: "pendiente",
-            token,
-            fechaExpiracion: new Date(Date.now() + 24 * 60 * 60 * 1000), // Expira en 24h
+            codigoInvitacion,
+            fechaExpiracion: new Date(Date.now() + 10 * 60 * 1000), // Expira en 10 minutos
         });
 
-        // 📩 **Generar el enlace deep link con el esquema correcto**
-        const deepLink = `reserbio://invitaciones/aceptar/${token}`;
+        console.log("✅ Invitación guardada correctamente en la BD:", nuevaInvitacion);
 
-        // 📩 **Enviar email de invitación con el deep link**
-        // 📩 **Enviar email de invitación con el deep link clickeable**
-        // 📩 **Enviar email de invitación con el deep link clickeable**
+        // 📩 **Enviar email con el código numérico SOLO SI LA INVITACIÓN SE GUARDÓ**
         await transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: email,
-            subject: "Invitación a unirse a una microempresa",
+            subject: "Código de invitación a una microempresa",
             html: `
                 <p>Has sido invitado a unirte a la microempresa <strong>${microempresa.nombre}</strong>.</p>
-                <p>Para aceptar la invitación, <strong>haz clic en el siguiente botón:</strong></p>
-                <p>
-                <a href="reserbio://invitaciones/aceptar/${token}" 
-                    style="background-color: #008CBA; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-                    Aceptar Invitación
-                </a>
-                </p>
-                <p>Si el botón no funciona, copia y pega esta URL en tu navegador:</p>
-                <p style="word-wrap: break-word;"> <strong>reserbio://invitaciones/aceptar/${token}</strong> </p>
+                <p>Para aceptar la invitación, ingresa el siguiente código en la app:</p>
+                <h2 style="color: #008CBA; text-align: center;">${codigoInvitacion}</h2>
+                <p>Este código es válido por 10 minutos.</p>
             `,
         });
 
-      //  console.log("📩 Invitación enviada a:", email, "🔗 Deep Link:", deepLink);
+        console.log("📩 Código enviado a:", email);
 
         return { message: "Invitación enviada con éxito", data: nuevaInvitacion };
     } catch (error) {
@@ -82,80 +100,76 @@ export async function crearInvitacion({ idMicroempresa, email }) {
 }
 
 
-
 /**
- * Obtiene una invitación por su token
+ * Verifica si un código de invitación es válido
  */
-export async function obtenerInvitacionPorToken(token) {
-    return await Invitacion.findOne({ token });
+async function verificarCodigoInvitacion(codigo) {
+    try {
+        const invitacion = await Invitacion.findOne({ codigoInvitacion: codigo });
+
+        if (!invitacion) {
+            return { success: false, message: "Código inválido o inexistente" };
+        }
+
+        if (new Date() > invitacion.fechaExpiracion) {
+            return { success: false, message: "El código ha expirado" };
+        }
+
+        return { success: true, data: invitacion };
+    } catch (error) {
+        console.error("❌ Error al verificar el código de invitación:", error.message);
+        throw new Error(error.message);
+    }
 }
 
 /**
  * Acepta una invitación y añade al trabajador a la microempresa
  */
-export async function aceptarInvitacion(token, userId) {
+async function aceptarInvitacionPorCodigo(codigo, userId) {
     try {
-        const invitacion = await obtenerInvitacionPorToken(token);
-        if (!invitacion) throw new Error("Invitación no encontrada");
+        const invitacion = await Invitacion.findOne({ codigoInvitacion: codigo });
+        if (!invitacion) throw new Error("Código inválido o inexistente");
 
         const microempresa = await Microempresa.findById(invitacion.idMicroempresa);
         if (!microempresa) {
             throw new Error("La microempresa asociada a la invitación no existe.");
         }
 
-        // Verificar si ya expiró
-        if (new Date() > invitacion.fechaExpiracion) {
-            invitacion.estado = "expirada";
-            await invitacion.save();
-            throw new Error("La invitación ha expirado");
+        let trabajadorId = userId; // Por defecto, usar el mismo ID recibido
+
+        // 📌 **Verificar si el usuario es Cliente y transformarlo en Trabajador**
+        const user = await UserModels.Cliente.findById(userId);
+        if (user) { // ✅ Si existe, convertirlo en Trabajador
+            console.log(`🔄 Transformando Cliente ${user.email} en Trabajador...`);
+            const [nuevoTrabajador, error] = await UserService.userChange(userId);
+            if (error) throw new Error(error);
+            trabajadorId = nuevoTrabajador._id; // ✅ Actualizar ID del trabajador
         }
 
-        // Crear enlace de trabajador
-        await Enlace.create({
-            id_trabajador: userId,
+        // 📌 **Crear un nuevo enlace para el historial**
+        const nuevoEnlace = await Enlace.create({
+            id_trabajador: trabajadorId,
             id_role: invitacion.id_role,
             id_microempresa: invitacion.idMicroempresa,
             fecha_inicio: new Date(),
             estado: true,
         });
 
-        // Actualizar estado de la invitación
+        // 📌 **Actualizar la microempresa para incluir el nuevo enlace**
+        await Microempresa.findByIdAndUpdate(
+            invitacion.idMicroempresa,
+            { $addToSet: { trabajadores: nuevoEnlace._id } }, // ✅ Agregar solo el ID del Enlace
+            { new: true },
+        );
+
+        // 📌 **Actualizar estado de la invitación**
         invitacion.estado = "aceptada";
         await invitacion.save();
 
-        // Enviar correo de confirmación
+        // 📌 **Enviar correo de confirmación**
         await enviarCorreoConfirmacion(invitacion.email, "aceptada", microempresa.nombre);
 
         return { message: "Invitación aceptada y trabajador añadido" };
-    } catch (error) {
-        throw new Error(error.message);
-    }
-}
-
-/**
- * Rechaza una invitación
- */
-export async function rechazarInvitacion(token) {
-    try {
-        const invitacion = await Invitacion.findOne({ token });
-
-        if (!invitacion) {
-            throw new Error("Invitación no encontrada");
-        }
-
-        const microempresa = await Microempresa.findById(invitacion.idMicroempresa);
-        if (!microempresa) {
-            throw new Error("La microempresa asociada a la invitación no existe.");
-        }
-
-        // Cambiar el estado de la invitación a "rechazada"
-        invitacion.estado = "rechazada";
-        await invitacion.save();
-
-        // Enviar correo de confirmación
-        await enviarCorreoConfirmacion(invitacion.email, "rechazada", microempresa.nombre);
-
-        return { message: "Invitación rechazada exitosamente" };
     } catch (error) {
         throw new Error(error.message);
     }
@@ -165,7 +179,7 @@ export async function rechazarInvitacion(token) {
 /**
  * Obtiene las invitaciones pendientes de una microempresa
  */
-export async function obtenerInvitaciones(idMicroempresa) {
+async function obtenerInvitaciones(idMicroempresa) {
     try {
         const invitaciones = await Invitacion.find({ idMicroempresa, estado: "pendiente" });
         return invitaciones;
@@ -175,7 +189,7 @@ export async function obtenerInvitaciones(idMicroempresa) {
 }
 
 /**
- *   Envia un correo al usuario dependiendo del estado de la invitación
+ * Envia un correo al usuario dependiendo del estado de la invitación
  */
 async function enviarCorreoConfirmacion(email, estado, microempresaNombre) {
     let subject = "";
@@ -185,10 +199,6 @@ async function enviarCorreoConfirmacion(email, estado, microempresaNombre) {
         case "aceptada":
             subject = "Invitación aceptada";
             message = `Has aceptado la invitación para unirte a ${microempresaNombre}. Ya puedes acceder a la plataforma.`;
-            break;
-        case "rechazada":
-            subject = "Invitación rechazada";
-            message = `Has rechazado la invitación para unirte a ${microempresaNombre}. Si fue un error, puedes solicitar otra invitación.`;
             break;
         case "expirada":
             subject = "Invitación expirada";
@@ -206,3 +216,9 @@ async function enviarCorreoConfirmacion(email, estado, microempresaNombre) {
     });
 }
 
+export default {
+    crearInvitacion,
+    verificarCodigoInvitacion,
+    aceptarInvitacionPorCodigo,
+    obtenerInvitaciones,
+};

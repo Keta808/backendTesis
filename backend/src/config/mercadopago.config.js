@@ -1,5 +1,5 @@
 import mercadopago from "mercadopago";
-import { ACCESS_TOKEN, CLIENT_SECRET } from "./configEnv.js";
+import { ACCESS_TOKEN, CLIENT_SECRET, CLIENT_ID } from "./configEnv.js";
 
 // Configura el token de acceso como una propiedad
 mercadopago.configurations = {

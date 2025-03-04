@@ -5,14 +5,24 @@ import { ACCESS_JWT_SECRET } from "../config/configEnv.js";
 import { respondError } from "../utils/resHandler.js";
 import { handleError } from "../utils/errorHandler.js";
 
+// 🟢 Definir rutas públicas (NO requieren autenticación)
+const publicRoutes = [
+  "/api/users/createcliente",
+  "/api/users/createuser",
+  "/api/users/createtrabajador",
+  "/api/auth/login",
+];
+
 /**
- * Verifica el token de acceso
- * @param {Object} req - Objeto de petición
- * @param {Object} res - Objeto de respuesta
- * @param {Function} next - Función para continuar con la siguiente función
+  * 📌 Middleware para verificar el token de autenticación
  */
 const verifyJWT = (req, res, next) => {
   try {
+    // 🟢 Si la ruta está en la lista de rutas públicas, permitir el acceso sin token
+    if (publicRoutes.includes(req.path)) {
+      return next();
+    }
+
     const authHeader = req.headers.authorization || req.headers.Authorization;
 
     if (!authHeader?.startsWith("Bearer ")) {
@@ -29,10 +39,10 @@ const verifyJWT = (req, res, next) => {
 
     jwt.verify(token, ACCESS_JWT_SECRET, (err, decoded) => {
       if (err) return respondError(req, res, 403, "No autorizado", err.message);
-      
+
       // Asignar los datos decodificados al objeto req.user
       req.user = { email: decoded.email, roles: decoded.roles };
-      
+
       next();
     });
   } catch (error) {
@@ -41,3 +51,4 @@ const verifyJWT = (req, res, next) => {
 };
 
 export default verifyJWT;
+

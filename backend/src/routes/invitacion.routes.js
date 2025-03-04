@@ -20,17 +20,17 @@ router.use(verifyJWT);
 // 📌 Ruta para enviar una invitación (solo dueños con plan premium)
 router.post(
     "/enviar",
-    // suscripcionMiddleware.verificarSuscripcion,
-    // suscripcionMiddleware.isPlanPremium,
-    InvitacionController.enviarInvitacion, // <== Aquí está el cambio
+    suscripcionMiddleware.verificarSuscripcion,  
+    suscripcionMiddleware.isPlanPremium,
+    InvitacionController.enviarInvitacion,
 );
 
-// 📌 Ruta para aceptar una invitación
+// 📌 Nueva ruta para verificar un código de invitación
+router.get("/verificar-codigo/:codigo", InvitacionController.verificarCodigoInvitacion);
 
-// router.post("/aceptar/:id", InvitacionController.aceptarInvitacion);
-router.post("/aceptar-invitacion/:token", InvitacionController.aceptarInvitacion);
-// 📌 Ruta para rechazar una invitación
-router.post("/rechazar/:token", InvitacionController.rechazarInvitacion);
+// 📌 Nueva ruta para aceptar una invitación con código numérico
+router.post("/aceptar/:codigo", InvitacionController.aceptarInvitacion);
+
 // 📌 Ruta para obtener invitaciones pendientes de una microempresa
 router.get(
     "/pendientes/:idMicroempresa",

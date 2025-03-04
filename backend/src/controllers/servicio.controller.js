@@ -123,4 +123,33 @@ async function calcularMontoAbono(req, res) {
         respondError(req, res, 400, error.message);
     }
 }
-export default { getServicios, createServicio, deleteServicio, updateServicio, getServicioById, getServiciosByMicroempresaId, configurarPorcentajeAbono, calcularMontoAbono }; 
+
+
+//funcion para retornar el id de la microempresa por el id del servicio
+
+async function getMicroempresaIdByServicioId(req, res) {
+    try {
+        const { error } = servicioIdSchema.validate(req.params);
+        if (error) return respondError(req, res, 400, error.message);
+        const [idMicroempresa, errorMicroempresa] = await servicioService.getMicroempresaIdByServicioId(req.params.id);
+        if (errorMicroempresa) return respondError(req, res, 404, errorMicroempresa);
+        respondSuccess(req, res, 200, idMicroempresa);
+    } catch (error) {
+        handleError(error, "servicio.controller -> getMicroempresaIdByServicioId");
+        respondError(req, res, 400, error.message);
+    }
+}
+
+
+export default { 
+    getServicios, 
+    createServicio, 
+    deleteServicio, 
+    updateServicio, 
+    getServicioById, 
+    getServiciosByMicroempresaId, 
+    configurarPorcentajeAbono, 
+    calcularMontoAbono,
+    getMicroempresaIdByServicioId
+
+}; 

@@ -22,10 +22,11 @@ const userSchema = new mongoose.Schema(
     state: {
       type: mongoose.Schema.Types.ObjectId,  // Asegúrate de que esto sea correcto
       ref: "State",  // Este es el nombre del modelo que has exportado
-    }, 
     },
-    options,
+  },
+  options,
 );
+
 
 /** Encrypts the user's password */
 userSchema.statics.encryptPassword = async (password) => {
@@ -55,7 +56,10 @@ const Trabajador = User.discriminator('Trabajador', new mongoose.Schema({
     type: String,
     required: true,
   },
-
+  isAdmin: {
+    type: Boolean,
+    default: false,
+  },
 }, options));
 
 const Administrador = User.discriminator('Administrador', new mongoose.Schema({

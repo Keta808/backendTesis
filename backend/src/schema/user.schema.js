@@ -75,6 +75,9 @@ const userTrabajadorSchema = Joi.object({
     "any.required": "El rol es obligatorio.",
     "string.base": "El rol debe ser de tipo string.",
   }),
+  isAdmin: Joi.boolean().messages({
+    "boolean.base": "El isAdmin debe ser de tipo boolean.",
+  }),
 }).messages({
   "object.unknown": "No se permiten propiedades adicionales.",
 });

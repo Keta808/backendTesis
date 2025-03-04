@@ -30,5 +30,6 @@ router.post('/cancelar-suscripcion', suscripcionController.cancelarSuscripcion);
 // Sincronizar estados con Job
 router.get('/sincronizar-estados', suscripcionController.sincronizarEstados); 
 router.put('/userChange/:id', suscripcionController.userChange);
+router.get('/suscripcion-usuario/:idUser', suscripcionController.getSuscripcionByUserId);
 
 export default router; 
