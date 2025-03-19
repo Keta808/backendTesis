@@ -187,6 +187,21 @@ export async function desvincularTrabajador(req, res) {
     }
 }
 
+/** Controlador para obtener el historial de microempresas de un usuario */
+async function getHistorialMicroempresas(req, res) {
+    try {
+        const { idUsuario } = req.params;
+
+        const [historial, error] = await EnlaceService.obtenerHistorialMicroempresas(idUsuario);
+        if (error) return respondError(req, res, 404, error);
+
+        return respondSuccess(req, res, 200, historial, "Historial de microempresas obtenido correctamente");
+    } catch (error) {
+        handleError(error, "enlace.controller -> getHistorialMicroempresas");
+        return respondError(req, res, 500, "Error al obtener historial de microempresas");
+    }
+}
+
 export default {
     getEnlaces,
     createEnlace,
@@ -196,4 +211,5 @@ export default {
     updateEnlaceParcial,
     getMicroempresasByTrabajador,
     desvincularTrabajador,
+    getHistorialMicroempresas,
 };

@@ -336,7 +336,16 @@ async function updateTrabajadorIsAdmin(id, isAdminValue = true) {
     return [null, error.message];
   }
 }
-
+async function verificarTrabajador(email) {
+  try {
+    const trabajador = await Trabajador.findOne({ email: email });  
+    if (!trabajador) return [null, "El trabajador no existe"];
+    return [trabajador, null];
+  } catch (error) {
+    handleError(error, "user.service -> verificarTrabajador");
+    return [null, error];
+  }
+}
 export default {
   getUsers,
   createUser,
@@ -352,4 +361,5 @@ export default {
   getClienteById,
   updateCliente,
   updateTrabajadorIsAdmin,
+  verificarTrabajador,
 };

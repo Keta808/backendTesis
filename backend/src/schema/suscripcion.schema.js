@@ -14,11 +14,10 @@ const suscripcionBodySchema = Joi.object({
         "any.required": "El idPlan es obligatorio.",
         "string.base": "El idPlan debe ser de tipo string.",
     }), 
-    estado: Joi.string().valid("pendiente", "activo", "cancelado", "expirado").required().messages({
+    estado: Joi.string().required().messages({
         "string.empty": "El estado no puede estar vacío.",
         "any.required": "El estado es obligatorio.",
         "string.base": "El estado debe ser de tipo string.",
-        "any.only": "El estado debe ser uno de los siguientes valores: pendiente, activo, cancelado, expirado",
     }),
     fecha_inicio: Joi.date().required().messages({
         "date.base": "La fecha de inicio debe ser de tipo date.",

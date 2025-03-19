@@ -19,5 +19,6 @@ router.get("/microempresa/:id", enlaceController.getTrabajadoresPorMicroempresa)
 router.put("/update/:id", enlaceController.updateEnlaceParcial);
 router.get("/microempresas/:userId", enlaceController.getMicroempresasByTrabajador);
 router.delete("/desvincular/:idEnlace", enlaceController.desvincularTrabajador);
+router.get("/historial/:idUsuario", enlaceController.getHistorialMicroempresas);
 
 export default router;

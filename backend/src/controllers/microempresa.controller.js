@@ -12,17 +12,18 @@ import { handleError } from "../utils/errorHandler.js";
 import mongoose from "mongoose";
 
 /**
- * Obtiene todas las microempresas de la base de datos
+ * Obtiene una página de microempresas de la base de datos con orden aleatorio persistente
  */
 async function getMicroempresas(req, res) {
   try {
-    const [microempresas, errorMicroempresas] = await MicroempresaService.getMicroempresas();
-    // populate para mostrar todos los datos de trabajadores
-    if (errorMicroempresas) return respondError(req, res, 404, errorMicroempresas);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 2;
+    const seed = req.query.seed || ""; 
 
-    microempresas.length === 0
-      ? respondSuccess(req, res, 204)
-      : respondSuccess(req, res, 200, microempresas);
+    const result = await MicroempresaService.getMicroempresas(page, limit, seed);
+
+    // 🔹 Si `result.microempresas` es undefined o vacío, devolvemos una respuesta vacía sin error
+    respondSuccess(req, res, 200, result);  
   } catch (error) {
     handleError(error, "microempresa.controller -> getMicroempresas");
     respondError(req, res, 400, error.message);
@@ -122,17 +123,24 @@ async function createMicroempresa(req, res) {
  */
 async function getMicroempresaById(req, res) {
   try {
-    const { error } = microempresaIdSchema.validate(req.params);
+    // Extraer el ID desde req.params
+    const { id } = req.params;
+
+    // Validar el ID con Joi
+    const { error } = microempresaIdSchema.validate({ id });
     if (error) return respondError(req, res, 400, error.message);
 
-    const [microempresa, errorMicroempresa] = await MicroempresaService
-    .getMicroempresaById(req.params.id);
-    if (errorMicroempresa) return respondError(req, res, 404, errorMicroempresa);
+    // Obtener la microempresa desde el servicio
+    const [microempresa, errorMicroempresa] = await MicroempresaService.getMicroempresaById(id);
 
+    // Verificar si la microempresa no existe
+    if (!microempresa) return respondError(req, res, 404, errorMicroempresa || "La microempresa no existe.");
+
+    // Responder con éxito
     respondSuccess(req, res, 200, microempresa);
   } catch (error) {
     handleError(error, "microempresa.controller -> getMicroempresaById");
-    respondError(req, res, 400, error.message);
+    respondError(req, res, 500, "Error al obtener la microempresa.");
   }
 }
 

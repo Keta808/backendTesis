@@ -25,4 +25,6 @@ router.get("/microempresa/:microempresaId/promedio", valoracionController.getVal
 // verificar si existe una valoracion para una reserva
 router.get("/reserva/:reservaId", valoracionController.existeValoracionPorReserva);
 
+router.get("/getValoracionPorIdReserva/:reservaId", valoracionController.getValoracionPorIdReserva);
+
 export default router;

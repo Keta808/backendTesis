@@ -141,5 +141,5 @@ export default {
     getServiciosByMicroempresaId,
     configurarPorcentajeAbono, 
     calcularMontoAbono, 
-    getMicroempresaIdByServicioId 
+    getMicroempresaIdByServicioId, 
 };

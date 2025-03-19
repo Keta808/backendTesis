@@ -160,7 +160,7 @@ async function getUserById(req, res) {
     const { error } = userIdSchema.validate(req.params);
     if (error) return respondError(req, res, 400, error.message);
 
-    const [user, errorUser] = await UserService.getUser(req.params.id);
+    const [user, errorUser] = await UserService.getUserById(req.params.id);
     if (errorUser) return respondError(req, res, 404, errorUser);
 
     respondSuccess(req, res, 200, user);
@@ -234,7 +234,17 @@ async function updateCliente(req, res) {
     respondError(req, res, 400, error.message);
   }
 }
-
+async function verificarTrabajador(req, res) {
+  try {
+    const { email } = req.params;
+    const [trabajador, errorTrabajador] = await UserService.verificarTrabajador(email);
+    if (errorTrabajador) return respondError(req, res, 404, "Usuario sin cuenta de trabajador");
+    respondSuccess(req, res, 200, trabajador);
+  } catch (error) {
+    handleError(error, "user.controller -> verificarTrabajador");
+    respondError(req, res, 500, error.message); 
+  }
+}
 export default {
   getUsers,
   createUser,
@@ -248,4 +258,5 @@ export default {
   updateTrabajador,
   getClienteById,
   updateCliente,
+  verificarTrabajador,
 };

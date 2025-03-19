@@ -299,6 +299,35 @@ async function desvincularTrabajador(idEnlace) {
     }
 }
 
+/** Obtiene el historial de microempresas en las que ha trabajado un usuario */
+async function obtenerHistorialMicroempresas(userId) {
+    try {
+        const objectId = new mongoose.Types.ObjectId(userId);
+        const enlaces = await Enlace.find({ id_trabajador: objectId })
+            .populate("id_microempresa")
+            .populate("id_role") // Si quieres incluir el rol
+            .sort({ fecha_inicio: -1 }); // Ordenar por fecha más reciente
+
+        if (!enlaces.length) throw new Error("No hay historial de microempresas para este usuario");
+
+        // Formatear el historial
+        const historial = enlaces
+            .filter(enlace => enlace.id_microempresa) // Filtrar solo los enlaces con microempresa válida
+            .map(enlace => ({
+        nombre_microempresa: enlace.id_microempresa.nombre,
+        fecha_inicio: enlace.fecha_inicio,
+        fecha_termino: enlace.fecha_termino,
+        rol: enlace.id_role ? enlace.id_role.nombre : null,
+    }));
+
+
+        return [historial, null];
+    } catch (error) {
+        handleError(error, "enlace.service -> obtenerHistorialMicroempresas");
+        return [null, error.message];
+    }
+}
+
 export default {
     getEnlaces,
     createEnlace,
@@ -308,4 +337,5 @@ export default {
     updateEnlaceParcial,
     obtenerMicroempresasPorTrabajador,
     desvincularTrabajador,
+    obtenerHistorialMicroempresas,
 };

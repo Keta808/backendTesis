@@ -172,7 +172,7 @@ async function verificarUltimoPago(idServicio) {
         // Buscar el pago más reciente y aprobado para este servicio
         const pago = await Payment.findOne({
             idServicio,
-            state: { $in: ["approved", "pending"] }, // Solo pagos aprobados
+            state: { $in: ["approved", "pending", "authorized"] }, // Solo pagos aprobados
         }).sort({ fecha: -1 }); // Ordenamos por fecha descendente (el más reciente primero)
 
         if (!pago) {
@@ -192,7 +192,7 @@ async function actualizarIdClienteEnPago(idServicio, idCliente) {
          // Buscar el último pago aprobado o pendiente para este servicio
          const pago = await Payment.findOne({
             idServicio,
-            state: { $in: ["approved", "pending"] }, // Solo pagos aprobados o pendientes
+            state: { $in: ["approved", "pending", "authorized"] }, // Solo pagos aprobados o pendientes
             idCliente: null, // Solo actualizar si aún no tiene cliente asignado
         }).sort({ fecha: -1 });
         

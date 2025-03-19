@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { Router } from "express"; 
 
 import mercadoPagoController from "../controllers/mercadoPago.controller.js"; 
@@ -15,7 +16,6 @@ router.post("/generar-url", mercadoPagoController.generarUrlOnBoarding);
 router.get("/callback", mercadoPagoController.onBoarding);  
 router.post("/refreshtoken/:id", mercadoPagoController.refreshToken); 
 router.get("/redirect", mercadoPagoController.obtenerRedirect);
-
 router.post("/servicio/:idServicio", mercadoPagoController.crearPreferenciaServicio);
 
 export default router; 

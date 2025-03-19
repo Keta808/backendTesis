@@ -324,6 +324,27 @@ async function getUrlPagoByReservaId(req, res) {
     respondError(req, res, 400, error.message);
   }
 }
+
+ const marcarReservaRealizada = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Llamar al servicio que actualiza el estado de la reserva
+    const reservaActualizada = await ReservaService.marcarReservaRealizada(id);
+
+    if (!reservaActualizada) {
+      return res.status(404).json({ message: "Reserva no encontrada" });
+    }
+
+    return res.status(200).json({
+      message: "Reserva marcada como realizada",
+      reserva: reservaActualizada,
+    });
+  } catch (error) {
+    console.error("Error en el controlador al marcar la reserva como realizada:", error);
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
 export default { 
     getReservas,
     getReservasByTrabajador, 
@@ -341,5 +362,6 @@ export default {
     createReservaHorario,
     getActiveReservationCount,
     getUrlPagoByReservaId,
+    marcarReservaRealizada,
   };
 

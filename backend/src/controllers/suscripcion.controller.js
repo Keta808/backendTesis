@@ -85,6 +85,7 @@ async function sincronizarEstados(){
     // eslint-disable-next-line keyword-spacing
     }catch(error){
         handleError(error, "suscripcion.controller -> sincronizarEstados");
+        return respondError(req, res, 400, "Error al sincronizar los estados de las suscripciones.");
     }
 } 
 

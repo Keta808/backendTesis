@@ -5,24 +5,55 @@
 import Microempresa from "../models/microempresa.model.js";
 import cloudinary from "../config/cloudinary.js";
 import Enlace from "../models/enlace.model.js";
+import Suscripcion from "../models/suscripcion.model.js";
 import enlaceService from "./enlace.service.js";
 import { handleError } from "../utils/errorHandler.js";
 import mongoose from "mongoose";
+import crypto from "crypto";
 
 /**
- * Obtiene todas las microempresas de la base de datos
+ * Obtiene una página de microempresas de la base de datos ordenadas aleatoriamente
+ * @param {Number} page Número de página (por defecto 1)
+ * @param {Number} limit Número máximo de microempresas por página (por defecto 10)
+ * @param {String} seed Semilla para el ordenamiento aleatorio (opcional)
  * @returns {Promise} Promesa con el objeto de las microempresas
  */
-async function getMicroempresas() {
+async function getMicroempresas(page = 1, limit = 2, seed = "") {
     try {
-        const microempresas = await Microempresa.find().exec();
-        if (!microempresas || microempresas.length === 0) return [null, "No hay microempresas"];
-    
-        const shuffledMicroempresas = microempresas.sort(() => Math.random() - 0.5);
-        
-        return [shuffledMicroempresas, null];
+        if (!seed) {
+            seed = crypto.randomBytes(20).toString("hex");
+        }
+
+        const totalMicroempresas = await Microempresa.countDocuments(); // Total de microempresas
+        const totalPages = Math.ceil(totalMicroempresas / limit); // Total de páginas
+
+        const skip = (page - 1) * limit;
+        const microempresas = await Microempresa.find()
+            .sort({ _id: 1 }) // Asegura un orden estable
+            .skip(skip)
+            .limit(limit)
+            .exec();
+
+        if (!microempresas || microempresas.length === 0) {
+            return { microempresas: [], totalMicroempresas, totalPages, seed };
+        }
+
+        // Ordenamos las microempresas con un hash basado en el seed
+        const sortedMicroempresas = microempresas.sort((a, b) => {
+            const hashA = crypto.createHash("sha256").update(seed + a._id.toString()).digest("hex");
+            const hashB = crypto.createHash("sha256").update(seed + b._id.toString()).digest("hex");
+            return hashA.localeCompare(hashB);
+        });
+
+        return { 
+            microempresas: sortedMicroempresas, 
+            totalMicroempresas, 
+            totalPages, 
+            seed,
+        };
     } catch (error) {
         handleError(error, "microempresa.service -> getMicroempresas");
+        return { microempresas: [], totalMicroempresas: 0, totalPages: 0, seed }; // Evita que el frontend crashee
     }
 }
 
@@ -40,24 +71,6 @@ async function getMicroempresaFotoPerfil(id) {
     } catch (error) {
         handleError(error, "microempresa.service -> getMicroempresaFotoPerfil");
         return [null, "Error al obtener la foto de perfil"];
-    }
-}
-
-async function getMicroempresasForPage(page = 1, limit = 10) {
-    try {
-        const skip = (page - 1) * limit; // Cálculo para saltar las microempresas anteriores
-        const microempresas = await Microempresa.find()
-            .skip(skip) // Saltar las anteriores
-            .limit(limit) // Limitar la cantidad
-            .exec();
-
-        if (!microempresas || microempresas.length === 0) {
-            return [null, "No hay microempresas"];
-        }
-
-        return [microempresas, null];
-    } catch (error) {
-        handleError(error, "microempresa.service -> getMicroempresas");
     }
 }
 
@@ -151,26 +164,41 @@ async function createMicroempresa(microempresa) {
 async function getMicroempresaById(id) {
     try {
         // 1️⃣ Buscar la microempresa por ID
-        const microempresa = await Microempresa.findById(id).exec();
+        const microempresa = await Microempresa.findById(id)
+            .populate("idTrabajador", "nombre email")
+            .exec();
+
         if (!microempresa) return [null, "La microempresa no existe"];
 
-        // 2️⃣ Buscar los enlaces activos asociados a la microempresa
+        console.log("🔍 Microempresa encontrada:", microempresa);
+
+        // 2️⃣ Buscar la suscripción usando el `idTrabajador`
+        const suscripcion = await Suscripcion.findOne({ idUser: microempresa.idTrabajador })
+            .populate("idPlan", "tipo_plan")
+            .exec();
+
+        console.log("📌 Suscripción encontrada:", suscripcion);
+
+        // 3️⃣ Obtener el tipo de plan
+        let tipoPlan = "Sin Plan";
+        if (suscripcion && suscripcion.idPlan) {
+            tipoPlan = suscripcion.idPlan.tipo_plan;
+        }
+
+        console.log("📝 Tipo de Plan asignado:", tipoPlan);
+
+        // 4️⃣ Buscar trabajadores de la microempresa
         const enlaces = await Enlace.find({ id_microempresa: id, estado: true })
             .populate("id_trabajador", "nombre apellido email telefono")
             .exec();
-
-        // 3️⃣ Extraer los trabajadores desde los enlaces
         const trabajadores = enlaces.map((enlace) => enlace.id_trabajador);
 
-        // 4️⃣ Añadir los trabajadores a la microempresa
-        microempresa.trabajadores = trabajadores;
-
-        return [microempresa, null];
+        // 5️⃣ Retornar la microempresa con sus trabajadores y plan
+        return [{ ...microempresa.toObject(), trabajadores, tipoPlan }, null];
     } catch (error) {
         handleError(error, "microempresa.service -> getMicroempresaById");
     }
 }
-
 
 /**
  * Actualiza una microempresa por su id de la base de datos
@@ -336,7 +364,6 @@ async function getMicroempresaIdByTrabajadorId(trabajadorId) {
 export default {
     getMicroempresas,
     getMicroempresaFotoPerfil,
-    getMicroempresasForPage,
     createMicroempresa,
     getMicroempresaById,
     updateMicroempresaById,

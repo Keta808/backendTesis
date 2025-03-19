@@ -58,7 +58,7 @@ async function getReservasByTrabajador(id) {
         .exec();
           
       if (!reservas || reservas.length === 0) return [null, "No hay reservas"];
-      console.log("reservas", reservas);
+      console.log("reservas en backend", reservas);
       return [reservas, null];
     } catch (error) {
       handleError(error, "reserva.service -> getReservasByTrabajador");
@@ -355,7 +355,7 @@ async function getReservasByCliente(id) {
         console.log(`Reservas finalizadas automáticamente: ${reservasFinalizadas.length}`);
 
         // Buscar y devolver todas las reservas actualizadas del cliente
-        const reservas = await Reserva.find({ cliente: id })
+        const reservas = await Reserva.find({ cliente: id, estado : {$ne: 'Cancelada'} })
             .select("hora_inicio fecha estado trabajador servicio duracion") // Solo los campos necesarios
             .populate({
                 path: "trabajador",
@@ -429,7 +429,7 @@ async function getReservasPorFechaTrabajador(workerId, date) {
       const reservas = await Reserva.find({
         trabajador: workerId,
         fecha: fechaConsulta,
-        estado: 'Activa'
+        estado: 'Activa' 
       }).sort({ hora_inicio: 1 });
   
       // Formatear cada reserva para que solo se envíen los datos necesarios
@@ -628,6 +628,29 @@ async function getUrlPagoByReservaId(idReserva) {
     }
 }
 
+
+
+// Función para marcar una reserva como 'Realizada' 
+
+export const marcarReservaRealizada = async (reservaId) => {
+    try {
+      const reservaActualizada = await Reserva.findByIdAndUpdate(
+        reservaId,
+        { estado: "Realizada" },
+        { new: true } // Devuelve la reserva actualizada
+      );
+  
+      if (!reservaActualizada) {
+        throw new Error("Reserva no encontrada");
+      }
+  
+      return reservaActualizada;
+    } catch (error) {
+      console.error("Error actualizando la reserva a 'Realizada':", error);
+      throw error;
+    }
+  };
+
 // Exporta las funciones definidas
 export default {
       getReservas,
@@ -644,5 +667,6 @@ export default {
       createReservaHorario,
       getActiveReservationCount, 
         getUrlPagoByReservaId,
+        marcarReservaRealizada,
 
     };

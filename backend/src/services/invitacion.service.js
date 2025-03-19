@@ -8,6 +8,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import UserService from "../services/user.service.js"; // ✅ Importar el servicio completo
 import UserModels from "../models/user.model.js";
+const { User } = UserModels;
 
 dotenv.config(); // Cargar variables de entorno
 
@@ -31,6 +32,15 @@ function generateInvitationCode() {
  */
 async function crearInvitacion({ idMicroempresa, email }) {
     try {
+        // 🔄 **Actualizar invitaciones expiradas antes de continuar**
+        await actualizarInvitacionesExpiradas();
+        
+        // 🔎 **Validar si el correo ya está registrado**
+        const usuarioExistente = await User.findOne({ email });
+        if (!usuarioExistente) {
+            throw new Error("El correo no está registrado en el sistema, no se puede enviar invitación.");
+        }
+
         // 🏢 **Verificar que la microempresa existe**
         const microempresa = await Microempresa.findById(idMicroempresa);
         if (!microempresa) throw new Error("La microempresa no existe");
@@ -41,31 +51,32 @@ async function crearInvitacion({ idMicroempresa, email }) {
             estado: true, // 📌 Filtra solo trabajadores activos
         });
 
-        console.log("📌 Cantidad total de trabajadores en la BD (incluye inactivos):", await Enlace.countDocuments({ id_microempresa: idMicroempresa }));
-        console.log("✅ Trabajadores activos:", totalTrabajadoresActivos);
-        console.log("🔍 Lista completa de trabajadores en microempresa:", microempresa.trabajadores);
-
         if (totalTrabajadoresActivos >= 10) {
             throw new Error("La microempresa ya alcanzó el límite de 10 trabajadores");
         }
 
+        // 🛠 **Actualizar invitaciones expiradas antes de continuar**
+        await Invitacion.updateMany(
+            { idMicroempresa, email, estado: "pendiente", fechaExpiracion: { $lte: new Date() } },
+            { $set: { estado: "expirada" } }
+        );
+
         // 🛠 **Verificar si ya existe una invitación activa para el mismo email**
-        const invitacionExistente = await Invitacion.findOne({
+        const invitacionActiva = await Invitacion.findOne({
             idMicroempresa,
             email,
             estado: "pendiente",
         });
 
-        if (invitacionExistente) {
-            throw new Error("Ya existe una invitación activa para este usuario");
+        if (invitacionActiva) {
+            throw new Error("Ya existe una invitación activa para este usuario.");
         }
 
-        // 🔑 **Generar el código único para la invitación**
+        // 🔑 **Generar el código único para la nueva invitación**
         const codigoInvitacion = generateInvitationCode();
-        console.log("🔑 Código generado en backend:", codigoInvitacion);
         if (!codigoInvitacion) throw new Error("Error: codigoInvitacion no se generó correctamente.");
 
-        // 📌 **Guardar la invitación en la base de datos ANTES de enviar el correo**
+        // 📌 **Guardar la nueva invitación en la base de datos**
         const nuevaInvitacion = await Invitacion.create({
             idMicroempresa,
             email,
@@ -75,9 +86,7 @@ async function crearInvitacion({ idMicroempresa, email }) {
             fechaExpiracion: new Date(Date.now() + 10 * 60 * 1000), // Expira en 10 minutos
         });
 
-        console.log("✅ Invitación guardada correctamente en la BD:", nuevaInvitacion);
-
-        // 📩 **Enviar email con el código numérico SOLO SI LA INVITACIÓN SE GUARDÓ**
+        // 📩 **Enviar email con el nuevo código**
         await transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: email,
@@ -98,7 +107,6 @@ async function crearInvitacion({ idMicroempresa, email }) {
         throw new Error(error.message);
     }
 }
-
 
 /**
  * Verifica si un código de invitación es válido
@@ -216,9 +224,48 @@ async function enviarCorreoConfirmacion(email, estado, microempresaNombre) {
     });
 }
 
+/**
+ * Actualiza el estado de las invitaciones pendientes que han expirado
+ */
+async function actualizarInvitacionesExpiradas() {
+    await Invitacion.updateMany(
+        { estado: "pendiente", fechaExpiracion: { $lt: new Date() } },
+        { estado: "expirada" },
+    );
+}
+
+/**
+ * Elimina una invitación por su ID
+ */
+async function eliminarInvitacion(id) {
+    try {
+        console.log("id recibido en service: ", id);
+        // Validar si el ID es un ObjectId válido ANTES de hacer la consulta
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            console.log("Error en service: ID de invitación no válido.");
+            throw new Error("ID de invitación no válido.");
+        }
+
+        // Verificar si la invitación existe
+        const invitacion = await Invitacion.findById(id);
+        if (!invitacion) {
+            throw new Error("La invitación no existe.");
+        }
+
+        // Eliminar la invitación
+        await Invitacion.findByIdAndDelete(id);
+
+        return { message: "Invitación eliminada correctamente." };
+    } catch (error) {
+        console.error("❌ Error al eliminar la invitación:", error.message);
+        throw new Error(error.message);
+    }
+}
+
 export default {
     crearInvitacion,
     verificarCodigoInvitacion,
     aceptarInvitacionPorCodigo,
     obtenerInvitaciones,
+    eliminarInvitacion,
 };

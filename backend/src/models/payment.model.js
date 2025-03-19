@@ -31,7 +31,6 @@ const paymentSchema = new mongoose.Schema({
     }, 
     state: {
         type: String,
-        enum: ["pending", "approved", "rejected", "refunded"],
         required: true,
     },
     fecha: {

@@ -15,6 +15,7 @@ const { User } = UserModels;
 import { handleError } from "../utils/errorHandler.js";
 import { ACCESS_TOKEN } from '../config/configEnv.js'; 
 import userService from './user.service.js';
+import microempresaService from './microempresa.service.js';
 
 
 async function getSuscripciones() {
@@ -482,7 +483,7 @@ async function cancelarSuscripcion(idUser, preapprovalId) {
         }
 
        
-        // 🔹 2️⃣ Eliminar el usuario Trabajador de la BD
+        //  Eliminar el usuario Trabajador de la BD
         const userTrabajador = await UserModels.User.findOne({ _id: idUser, kind: "Trabajador" }).exec();
         if (userTrabajador) {
             await User.deleteOne({ _id: idUser });
@@ -491,11 +492,17 @@ async function cancelarSuscripcion(idUser, preapprovalId) {
             console.log(`No se encontró usuario Trabajador con ID ${idUser}.`);
         }
 
-        // 🔹 3️⃣ Eliminar la suscripción de la BD
+        // Eliminar la suscripción de la BD
         await Suscripcion.deleteOne({ preapproval_id: preapprovalId });
-        console.log("Suscripción eliminada de la BD.");
+        console.log("Suscripción eliminada de la BD."); 
 
-        return ["Suscripción cancelada y cuenta de Trabajador eliminada.", null];
+        // Eliminar la microempresa de la BD 
+        const [microempresa, errorM] = await microempresaService.obtenerMicroempresaPorTrabajador(idUser);
+        if (errorM) return [null, errorM];
+        console.log("Microempresa encontrada:", microempresa);
+        await microempresaService.deleteMicroempresaById(microempresa._id);
+
+        return ["Suscripción cancelada y Microempresa eliminada.", null];
     } catch (error) {
         console.error(`Error al cancelar la suscripción:`, error.response?.data || error.message);
         handleError(error, "suscripcion.service -> cancelarSuscripcion");

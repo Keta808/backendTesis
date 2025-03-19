@@ -34,6 +34,7 @@ router.get("/trabajador/:id", usuarioController.getTrabajadorById);
 router.post("/trabajador/:id", usuarioController.updateTrabajador);
 router.get("/cliente/:id", usuarioController.getClienteById);
 router.post("/cliente/:id", usuarioController.updateCliente);
+router.get("/verificar/:email", usuarioController.verificarTrabajador);
 
 // Exporta el enrutador
 export default router;

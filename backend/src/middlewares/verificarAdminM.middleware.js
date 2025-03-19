@@ -8,12 +8,12 @@ const { Trabajador } = userModels;
 
 async function verificarAdminMicroempresa(req, res, next) {
     try {
-        if (!req.user || !req.user.id) {
+        if (!req.user || !req.user.email) {
             return respondError(req, res, 401, "Usuario no autenticado.");
         }
-
+        const userEmail = req.user.email;
         // Buscar el trabajador por su ID
-        const trabajador = await Trabajador.findById(req.user.id);
+        const trabajador = await Trabajador.findOne({ email: userEmail }).exec();
         
         if (!trabajador) {
             return respondError(req, res, 403, "No tienes permisos para realizar esta acción.");

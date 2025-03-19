@@ -10,7 +10,7 @@ const ValoracionSchema = new mongoose.Schema({
   },
   cliente: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Usuario',
+    ref: 'User',
     required: true
   },
   trabajador: {

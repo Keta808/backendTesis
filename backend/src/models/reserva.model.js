@@ -32,9 +32,9 @@ const ReservaSchema = new mongoose.Schema({
     },
     estado: {
         type: String,
-        enum: ['Activa', 'Cancelada', 'Finalizada'],
+        enum: ['Activa', 'Cancelada', 'Finalizada', 'Realizada'],
         required: true,
-    },
+    }, 
 }, {
     timestamps: true, // Agrega createdAt y updatedAt automáticamente
     versionKey: false,

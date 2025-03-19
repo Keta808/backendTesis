@@ -35,6 +35,7 @@ router.get('/count/:clientId/:microempresaId', reservaController.getActiveReserv
 //test para crear reserva con horario
 router.post('/crear-reserva-horario', reservaController.createReservaHorario);
 router.get('/servicio-url/:idReserva', reservaController.getUrlPagoByReservaId);
+router.put("/:id/realizada", reservaController.marcarReservaRealizada); // Marca una reserva como realizada
 
 // Exporta el enrutador
 export default router;

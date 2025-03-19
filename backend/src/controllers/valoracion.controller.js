@@ -30,7 +30,7 @@ async function getValoracionesPorTrabajador(req, res) {
         const { trabajadorId } = req.params;
         const [valoraciones, error] = await valoracionService.getValoracionesPorTrabajador(trabajadorId);
 
-        if (error) return res.status(404).json({ message: error });
+        if (error) return res.status(500).json({ message: error }); // O status 404 según convenga
 
         return res.status(200).json(valoraciones);
     } catch (error) {
@@ -38,6 +38,7 @@ async function getValoracionesPorTrabajador(req, res) {
         return res.status(500).json({ message: "Error interno al obtener las valoraciones del trabajador" });
     }
 }
+
 
 /**
  * Crea una nueva valoración.
@@ -103,6 +104,20 @@ async function existeValoracionPorReserva(req, res) {
     }
 }
 
+async function getValoracionPorIdReserva(req, res) {
+    try {
+        const { reservaId } = req.params;
+       const valoracion = await valoracionService.getValoracionPorIdReserva(reservaId);
+
+       console.log("valoracion", valoracion);
+    return res.status(200).json(valoracion);
+    }       
+    catch (error) {
+        console.error("Error en getValoracionPorIdReserva:", error);
+        return res.status(500).json({ message: "Error interno al obtener la valoración" });
+    }
+} 
+
 export default {
     getValoracionPromedioPorMicroempresa,
     getValoracionesPorMicroempresa,
@@ -110,5 +125,6 @@ export default {
     crearValoracion,
     eliminarValoracion,
     existeValoracionPorReserva,
+    getValoracionPorIdReserva,
     
 };

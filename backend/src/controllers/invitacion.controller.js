@@ -1,4 +1,5 @@
 import InvitacionService from "../services/invitacion.service.js";
+import mongoose from "mongoose";
 
 /**
  * Controlador para enviar una invitación a un trabajador con código numérico
@@ -66,11 +67,33 @@ async function obtenerInvitaciones(req, res) {
     }
 }
 
+/**
+ * Controlador para eliminar una invitación por su ID
+ */
+export async function eliminarInvitacion(req, res) {
+    try {
+        const { id } = req.params;
+        console.log("id recibido en controller:", id);
+        // Validar si el ID es un ObjectId válido ANTES de llamar al servicio
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: "ID de invitación no válido." });
+            console.log("Error en controller: ID de invitación no válido.");
+        }
+
+        const result = await InvitacionService.eliminarInvitacion(id);
+
+        return res.status(200).json(result); // Retorna el mensaje de éxito
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+}
+
 export default {
     enviarInvitacion,
     verificarCodigoInvitacion,
     aceptarInvitacion,
     obtenerInvitaciones,
+    eliminarInvitacion,
 };
 
 

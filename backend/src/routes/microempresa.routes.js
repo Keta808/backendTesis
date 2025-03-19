@@ -13,6 +13,8 @@ import { isAdmin, isTrabajador, isCliente } from "../middlewares/authorization.m
 import authenticationMiddleware from "../middlewares/authentication.middleware.js";
 /** Middleware de suscripción */
 import suscripcionMiddleware from "../middlewares/verificarSuscripcion.middleware.js"; 
+/** Middleware de verificación de admin */
+import verificarAdminMicroempresa from "../middlewares/verificarAdminM.middleware.js";
 /** Instancia del enrutador */
 const router = Router();
 
@@ -23,13 +25,14 @@ router.get("/", microempresaController.getMicroempresas);
 router.get("/fotoPerfil/:id", microempresaController.getMicroempresaFotoPerfil);
 router.get("/page/:page/limit/:limit", isTrabajador, microempresaController.getMicroempresasForPage);
 router.get("/:id", microempresaController.getMicroempresaById);
-// router.get("/nombre/:nombre", isAdmin, microempresaController.getMicroempresaByNombre);
-router.post("/", suscripcionMiddleware.verificarSuscripcion, microempresaController.createMicroempresa);
-router.put("/:id", microempresaController.updateMicroempresaById);
-router.delete("/:id", microempresaController.deleteMicroempresaById);
 router.get("/categoria/:categoria", microempresaController.getMicroempresasPorCategoria);
 router.get("/user/:trabajadorId", microempresaController.getMicroempresasByUser);
 router.get("/user/:trabajadorId/id", microempresaController.getMicroempresaIdByTrabajadorId);
 router.get("/maintrabajador/:idTrabajador", microempresaController.obtenerMicroempresaPorTrabajador);
+
+// Aplicar el middleware de verificación de admin a rutas protegidas
+router.post("/", verificarAdminMicroempresa, microempresaController.createMicroempresa);
+router.put("/:id", verificarAdminMicroempresa, microempresaController.updateMicroempresaById);
+router.delete("/:id", verificarAdminMicroempresa, microempresaController.deleteMicroempresaById);
 // Exporta el enrutador
 export default router;

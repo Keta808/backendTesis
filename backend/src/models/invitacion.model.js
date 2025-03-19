@@ -38,7 +38,7 @@ const invitacionSchema = new mongoose.Schema(
       default: () => new Date(Date.now() + 10 * 60 * 1000),
     },
   },
-  { timestamps: true } // Agrega createdAt y updatedAt automáticamente
+  { timestamps: true }, // Agrega createdAt y updatedAt automáticamente
 );
 
 export default mongoose.model("Invitacion", invitacionSchema);
